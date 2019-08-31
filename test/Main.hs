@@ -18,9 +18,11 @@ arbitrarySizedFormula :: Arbitrary i => Int -> Gen (Formula i)
 arbitrarySizedFormula 0 = liftM Var arbitrary
 arbitrarySizedFormula n = oneof [
     liftM Var arbitrary,
-    liftM Neg sub,
+    liftM Not sub,
     liftM2 Or sub sub,
-    liftM2 And sub sub]
+    liftM2 And sub sub,
+    liftM2 Implies sub sub,
+    liftM2 Equiv sub sub]
   where sub = arbitrarySizedFormula (div n 2)
 
 
