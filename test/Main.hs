@@ -16,8 +16,11 @@ instance Arbitrary i => Arbitrary (Formula i) where
 
 arbitrarySizedFormula :: Arbitrary i => Int -> Gen (Formula i)
 arbitrarySizedFormula 0 = liftM Var arbitrary
-arbitrarySizedFormula n = oneof [arbitrarySizedFormula 0,
-    liftM2 Or sub sub]
+arbitrarySizedFormula n = oneof [
+    liftM Var arbitrary,
+    liftM Neg sub,
+    liftM2 Or sub sub,
+    liftM2 And sub sub]
   where sub = arbitrarySizedFormula (div n 2)
 
 
