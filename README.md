@@ -1,2 +1,1 @@
-# sat-tools
-Tools to reduce problems to SAT
+Summer holiday fun.
