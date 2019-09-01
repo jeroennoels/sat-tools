@@ -5,6 +5,7 @@ import qualified Data.Set as Set
 
 -- The type parameter represents the type of identifier we want to use
 -- to label the variables. For an example, think String or Int.
+
 data Formula i =
   Var i
   | Not (Formula i)
@@ -13,7 +14,12 @@ data Formula i =
   | Equiv (Formula i) (Formula i)
   | Implies (Formula i) (Formula i)
 
-  
+-- In many examples we simply use Int to label the variables.
+newtype IntLabel = IntLabel Int deriving (Eq, Ord)
+
+instance Show IntLabel where
+  show (IntLabel n) = show n
+
 -- The following implementation of Show is very inefficient and only
 -- intended to debug small examples.
 
@@ -29,6 +35,7 @@ instance Show i => Show (Formula i) where
   show (Equiv x y) = showBinop x "<=>" y
   show (Implies x y) = showBinop x "=>" y
 
+-- Find all distinct Variables occurring in a given formula.
 variables :: Ord i => Formula i -> Set i
 variables (Var i) = Set.singleton i
 variables (Not x) = variables x
