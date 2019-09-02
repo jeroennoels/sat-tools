@@ -29,8 +29,12 @@ tautology f = all (evaluate f) (allAssignments $ variables f)
 prop_elimImplication :: Formula IntLabel -> Bool
 prop_elimImplication f = elimImplication f <--> f
 
+prop_moveNotDown :: Formula IntLabel -> Bool
+prop_moveNotDown f = moveNotDown (elimImplication f) <--> f
+
 runTests :: IO ()
-runTests = quickCheck prop_elimImplication
+runTests = sequence_ $
+  map quickCheck [prop_elimImplication, prop_moveNotDown]
 
 main :: IO ()
 main = sequence_ $ map putStrLn result

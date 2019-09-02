@@ -47,6 +47,9 @@ variables (Implies x y) = variables x `Set.union` variables y
 -- Conjunctive normal form.  Inspired by:
 -- https://github.com/chris-taylor/aima-haskell/tree/master/src/AI/Logic
 
+-- The first step towards CNF is to eliminate all implications and
+-- bicondionals.
+
 impliesCNF ::  Formula i -> Formula i -> Formula i
 impliesCNF x y = Not x `Or` y
 
@@ -60,3 +63,16 @@ elimImplication (Or x y) = elimImplication x `Or` elimImplication y
 elimImplication (And x y) = elimImplication x `And` elimImplication y
 elimImplication (Equiv x y) = elimImplication x `equivCNF` elimImplication y
 elimImplication (Implies x y) = elimImplication x `impliesCNF` elimImplication y
+
+-- Using De Morgan's laws, we push negation down to the variables and
+-- eliminate double negation along the way.  We assume implications
+-- and bicondionals were eliminated beforehand.
+
+moveNotDown :: Formula i -> Formula i
+moveNotDown x@(Var _) = x
+moveNotDown x@(Not (Var _)) = x
+moveNotDown (Not (Not x)) = moveNotDown x
+moveNotDown (Not (Or x y)) = moveNotDown (Not x) `And` moveNotDown (Not y)
+moveNotDown (Not (And x y)) = moveNotDown (Not x) `Or` moveNotDown (Not y)
+moveNotDown (And x y) = moveNotDown x `And` moveNotDown y
+moveNotDown (Or x y) = moveNotDown x `Or` moveNotDown y
