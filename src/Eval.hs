@@ -7,7 +7,6 @@ import Control.Arrow ((&&&))
 import Data.Set (Set)
 import qualified Data.Set as Set
 
-
 data Assignment i = Assignment {domain :: [i], assign :: i -> Bool}
 
 instance Show i => Show (Assignment i) where
@@ -34,3 +33,6 @@ allAssignments vars = map (characteristic vars) subsets
   where
     subsets :: [Set i]
     subsets = Set.toList (Set.powerSet vars)
+
+equalOn :: Formula i -> Formula i -> Assignment i -> Bool
+equalOn x y a = evaluate x a == evaluate y a

@@ -44,7 +44,19 @@ variables (And x y) = variables x `Set.union` variables y
 variables (Equiv x y) = variables x `Set.union` variables y
 variables (Implies x y) = variables x `Set.union` variables y
 
-
-
 -- Conjunctive normal form.  Inspired by:
 -- https://github.com/chris-taylor/aima-haskell/tree/master/src/AI/Logic
+
+impliesCNF ::  Formula i -> Formula i -> Formula i
+impliesCNF x y = Not x `Or` y
+
+equivCNF :: Formula i -> Formula i -> Formula i
+equivCNF x y = impliesCNF x y `And` impliesCNF y x
+
+elimImplication :: Formula i -> Formula i
+elimImplication x@(Var _) = x
+elimImplication (Not x) = Not (elimImplication x)
+elimImplication (Or x y) = elimImplication x `Or` elimImplication y
+elimImplication (And x y) = elimImplication x `And` elimImplication y
+elimImplication (Equiv x y) = elimImplication x `equivCNF` elimImplication y
+elimImplication (Implies x y) = elimImplication x `impliesCNF` elimImplication y
