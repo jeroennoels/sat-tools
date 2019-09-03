@@ -45,6 +45,7 @@ variables (Equiv x y) = variables x `Set.union` variables y
 variables (Implies x y) = variables x `Set.union` variables y
 
 -- Conjunctive normal form.  Inspired by:
+-- Data.Logic.Propositional.NormalForms and
 -- https://github.com/chris-taylor/aima-haskell/tree/master/src/AI/Logic
 
 -- The first step towards CNF is to eliminate all implications and
@@ -64,15 +65,32 @@ elimImplication (And x y) = elimImplication x `And` elimImplication y
 elimImplication (Equiv x y) = elimImplication x `equivCNF` elimImplication y
 elimImplication (Implies x y) = elimImplication x `impliesCNF` elimImplication y
 
+literal :: Formula i -> Bool
+literal (Var _) = True
+literal (Not (Var _)) = True
+literal _ = False
+
 -- Using De Morgan's laws, we push negation down to the variables and
 -- eliminate double negation along the way.  We assume implications
 -- and bicondionals were eliminated beforehand.
 
 moveNotDown :: Formula i -> Formula i
-moveNotDown x@(Var _) = x
-moveNotDown x@(Not (Var _)) = x
+moveNotDown x | literal x = x
 moveNotDown (Not (Not x)) = moveNotDown x
 moveNotDown (Not (Or x y)) = moveNotDown (Not x) `And` moveNotDown (Not y)
 moveNotDown (Not (And x y)) = moveNotDown (Not x) `Or` moveNotDown (Not y)
 moveNotDown (And x y) = moveNotDown x `And` moveNotDown y
 moveNotDown (Or x y) = moveNotDown x `Or` moveNotDown y
+
+moveOrDown :: Formula i -> Formula i
+moveOrDown x | literal x = x
+moveOrDown (Or x y) = moveOrDown x `distributeOr` moveOrDown y
+moveOrDown (And x y) = moveOrDown x `And` moveOrDown y
+
+-- We assume the arguments are already in CNF.
+distributeOr x (And y z) = And (distributeOr x y) (distributeOr x z)
+distributeOr (And x y) z = And (distributeOr x z) (distributeOr y z)
+distributeOr x y = Or x y
+
+toCNF :: Formula i -> Formula i
+toCNF = moveOrDown . moveNotDown . elimImplication

@@ -32,9 +32,12 @@ prop_elimImplication f = elimImplication f <--> f
 prop_moveNotDown :: Formula IntLabel -> Bool
 prop_moveNotDown f = moveNotDown (elimImplication f) <--> f
 
+prop_toCNF :: Formula IntLabel -> Bool
+prop_toCNF f = toCNF f <--> f
+
 runTests :: IO ()
 runTests = sequence_ $
-  map quickCheck [prop_elimImplication, prop_moveNotDown]
+  map quickCheck [prop_elimImplication, prop_moveNotDown, prop_toCNF]
 
 main :: IO ()
-main = sequence_ $ map putStrLn result
+main = runTests
