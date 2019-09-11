@@ -13,12 +13,14 @@ arbitrarySizedFormula :: Arbitrary i => Int -> Gen (Formula i)
 arbitrarySizedFormula 0 = liftM Var arbitrary
 arbitrarySizedFormula n = oneof [
     liftM Var arbitrary,
-    liftM Not sub,
+    liftM Not big,
     liftM2 Or sub sub,
-    liftM2 And sub sub,
+    liftM2 And big big,
     liftM2 Implies sub sub,
     liftM2 Equiv sub sub]
-  where sub = arbitrarySizedFormula (div (2*n) 3)
+  where
+    sub = arbitrarySizedFormula (div n 4)
+    big = arbitrarySizedFormula (div (2*n) 3)
 
 
 instance Arbitrary IntLabel where

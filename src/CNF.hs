@@ -9,17 +9,22 @@ data Literal i = Positive i | Negative i
   deriving Eq
 
 newtype Clause i = Clause [Literal i]
-  deriving Show
+  deriving (Eq, Ord, Show)
 
 var :: Literal i -> i
 var (Positive v) = v
 var (Negative v) = v
 
+pos :: Literal i -> Bool
+pos (Positive v) = True
+pos (Negative v) = False
+
 compareLiterals :: Ord i => Literal i -> Literal i -> Ordering
-compareLiterals x y | ord /= EQ = ord
-  where ord = compare (var x) (var y)
-compareLiterals (Negative _) (Positive _) = LT
-compareLiterals _ _ = GT
+compareLiterals x y
+  | compareVars == EQ = compare (pos x) (pos y)
+  | otherwise = compareVars
+  where
+    compareVars = compare (var x) (var y)
 
 instance Ord i => Ord (Literal i) where
   compare = compareLiterals
@@ -32,7 +37,8 @@ toLiteral :: Formula i -> Literal i
 toLiteral (Var x) = Positive x
 toLiteral (Not (Var x)) = Negative x
 
--- Turn a nested CNF formula into a flat list of clauses.
+-- No we convert nested a CNF formula into a flat list of clauses.
+-- The implementation assumes the input is already in CNF.
 
 flattenAnd :: Formula i -> [Clause i]
 flattenAnd (And x y) = flattenAnd x ++ flattenAnd y
@@ -45,8 +51,9 @@ flattenOr (Or x y) z = toLiteral z : flattenOr x y
 flattenOr z (Or x y) = toLiteral z : flattenOr x y
 flattenOr x y = [toLiteral x, toLiteral y]
 
--- The following assumes the input list is sorted in a specif way.
--- See the Ord instance of Literal
+-- The following assumes the list of literals is ordered in such a way
+-- that opposite literals are adjacent, specifically as defined by the
+-- instance declaration for (Ord Literal).
 
 removeTautologies :: Eq i => [Literal i] -> Maybe [Literal i]
 removeTautologies (Negative v : Positive w : zs) | v == w = Nothing
@@ -60,4 +67,4 @@ normalizeClause :: Ord i => Clause i -> Maybe (Clause i)
 normalizeClause (Clause xs) = Clause `fmap` normalizeLiterals xs
 
 normalizeClauses :: Ord i => [Clause i] -> [Clause i]
-normalizeClauses = mapMaybe normalizeClause
+normalizeClauses = sort . nub . mapMaybe normalizeClause

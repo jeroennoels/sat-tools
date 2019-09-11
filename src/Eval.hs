@@ -2,6 +2,7 @@
 module Eval where
 
 import Formula
+import CNF
 
 import Control.Arrow ((&&&))
 import Data.Set (Set)
@@ -36,3 +37,15 @@ allAssignments vars = map (characteristic vars) subsets
 
 equalOn :: Formula i -> Formula i -> Assignment i -> Bool
 equalOn x y a = evaluate x a == evaluate y a
+
+
+evalLiteral :: Assignment i -> Literal i -> Bool
+evalLiteral a (Positive x) = assign a x
+evalLiteral a (Negative x) = not (assign a x)
+
+evalClauses :: [Clause i] -> Assignment i -> Bool
+evalClauses cs a = all eval cs
+  where eval (Clause xs) = any (evalLiteral a) xs
+
+equivalentOn :: [Clause i] -> Formula i -> Assignment i -> Bool
+equivalentOn cs f a = evalClauses cs a == evaluate f a
