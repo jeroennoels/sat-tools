@@ -1,4 +1,4 @@
-module CNF where
+module Clauses where
 
 import Formula
 
@@ -37,13 +37,15 @@ toLiteral :: Formula i -> Literal i
 toLiteral (Var x) = Positive x
 toLiteral (Not (Var x)) = Negative x
 
--- No we convert nested a CNF formula into a flat list of clauses.
--- The implementation assumes the input is already in CNF.
+-- Now we convert a nested a CNF formula into a flat list of clauses.
+-- The implementation assumes the input is already in CNF.  We use
+-- naive recursion which may not be very efficient, but that is good
+-- enough for now.
 
-flattenAnd :: Formula i -> [Clause i]
-flattenAnd (And x y) = flattenAnd x ++ flattenAnd y
-flattenAnd (Or x y) = [Clause (flattenOr x y)]
-flattenAnd x = [Clause [toLiteral x]]
+flattenCNF :: Formula i -> [Clause i]
+flattenCNF (And x y) = flattenCNF x ++ flattenCNF y
+flattenCNF (Or x y) = [Clause (flattenOr x y)]
+flattenCNF x = [Clause [toLiteral x]]
 
 flattenOr :: Formula i -> Formula i -> [Literal i]
 flattenOr (Or x y) (Or v w) = flattenOr x y ++ flattenOr v w
@@ -68,3 +70,6 @@ normalizeClause (Clause xs) = Clause `fmap` normalizeLiterals xs
 
 normalizeClauses :: Ord i => [Clause i] -> [Clause i]
 normalizeClauses = sort . nub . mapMaybe normalizeClause
+
+formulaToClauses :: Ord i => Formula i -> [Clause i]
+formulaToClauses = normalizeClauses . flattenCNF . toCNF

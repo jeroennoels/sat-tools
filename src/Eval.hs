@@ -2,7 +2,7 @@
 module Eval where
 
 import Formula
-import CNF
+import Clauses
 
 import Control.Arrow ((&&&))
 import Data.Set (Set)
@@ -23,7 +23,6 @@ evaluate x a = eval x where
   eval (Equiv x y) = eval x == eval y
   eval (Implies x y) = if eval x then eval y else True
 
-
 characteristic :: Ord i => Set i -> Set i -> Assignment i
 characteristic dom subset =
   Assignment { domain = Set.toList dom,
@@ -37,7 +36,6 @@ allAssignments vars = map (characteristic vars) subsets
 
 equalOn :: Formula i -> Formula i -> Assignment i -> Bool
 equalOn x y a = evaluate x a == evaluate y a
-
 
 evalLiteral :: Assignment i -> Literal i -> Bool
 evalLiteral a (Positive x) = assign a x

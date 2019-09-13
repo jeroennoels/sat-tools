@@ -19,7 +19,7 @@ arbitrarySizedFormula n = oneof [
     liftM2 Implies sub sub,
     liftM2 Equiv sub sub]
   where
-    sub = arbitrarySizedFormula (div n 4)
+    sub = arbitrarySizedFormula (div (2*n) 7)
     big = arbitrarySizedFormula (div (2*n) 3)
 
 
