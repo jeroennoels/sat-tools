@@ -5,6 +5,7 @@ import Formula
 import Eval
 import Arbitraries
 import Clauses
+import Dimacs
 
 import Test.QuickCheck
 import Control.Arrow ((&&&))
@@ -15,7 +16,7 @@ example1 :: Formula Int
 example1 = (Not (Var 1) `Or` Var 2) `Equiv` (Var 1 `Implies` Var 2)
 
 example2 :: Formula Int
-example2 = (Not (Var 1) `Or` Var 2) `And` (Not (Var 1) `Or` Var 2)
+example2 = ((Not (Var 1) `And` Var 4) `Equiv` (Var 2 `Or` Var 1)) `Or` Var 3
 
 example3 :: IO (Formula IntLabel)
 example3 = generate (arbitrarySizedFormula 100)
@@ -50,4 +51,4 @@ runTests = sequence_ $ map quickCheck
    prop_Clauses]
 
 main :: IO ()
-main = runTests
+main = dimacsOutput (formulaToClauses example2) --runTests

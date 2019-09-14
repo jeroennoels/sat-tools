@@ -1,9 +1,14 @@
-module Clauses where
+module Clauses (
+  Literal (..), Clause(..),
+  distinctVariables,
+  formulaToClauses) where
 
 import Formula
 
 import Data.Maybe
 import Data.List
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 data Literal i = Positive i | Negative i
   deriving Eq
@@ -36,6 +41,13 @@ instance Show i => Show (Literal i) where
 toLiteral :: Formula i -> Literal i
 toLiteral (Var x) = Positive x
 toLiteral (Not (Var x)) = Negative x
+
+variablesInClause :: Ord i => Clause i -> Set i
+variablesInClause (Clause xs) = Set.fromList $ map var xs
+
+distinctVariables :: Ord i => [Clause i] -> Set i
+distinctVariables = Set.unions . map variablesInClause
+
 
 -- Now we convert a nested a CNF formula into a flat list of clauses.
 -- The implementation assumes the input is already in CNF.  We use

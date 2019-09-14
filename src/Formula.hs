@@ -1,4 +1,7 @@
-module Formula where
+module Formula (
+  Formula (..), IntLabel (..),
+  variables, elimImplication, moveNotDown,
+  toCNF) where
 
 import Data.Set (Set)
 import qualified Data.Set as Set
