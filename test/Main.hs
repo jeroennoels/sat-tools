@@ -6,6 +6,7 @@ import Eval
 import Arbitraries
 import Clauses
 import Dimacs
+import Arithmetic
 
 import Test.QuickCheck
 import Control.Arrow ((&&&))
@@ -51,4 +52,4 @@ runTests = sequence_ $ map quickCheck
    prop_Clauses]
 
 main :: IO ()
-main = dimacsOutput (formulaToClauses example2) --runTests
+main = dimacsOutput $ formulaToClauses $ multiplyDigits 'a' 'b' 'c'
