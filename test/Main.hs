@@ -45,11 +45,18 @@ prop_toCNF f = toCNF f <--> f
 prop_Clauses :: Formula IntLabel -> Bool
 prop_Clauses f = formulaToClauses f <==> f
 
+assert :: String -> Bool -> IO ()
+assert msg ok = putStrLn $ msg ++ if ok then " -> OK" else error msg
+
 runTests :: IO ()
-runTests = sequence_ $ map quickCheck
-  [prop_elimImplication,
-   prop_moveNotDown,
-   prop_Clauses]
+runTests = sequence_ $
+  [assert "testMultiply" testMultiply] ++
+  map quickCheck [prop_elimImplication,
+                  prop_moveNotDown,
+                  prop_Clauses]
+
+testDimacs :: IO ()
+testDimacs = dimacsOutput $ formulaToClauses $ multiplyDigits 'a' 'b' 'c'
 
 main :: IO ()
-main = dimacsOutput $ formulaToClauses $ multiplyDigits 'a' 'b' 'c'
+main = runTests
