@@ -59,18 +59,15 @@ isValidT2 i = Not (plus2 i `And` mins2 i) `And` (zero2 i `Implies` even2 i)
 pareq :: i -> i -> Formula (T21 i)
 pareq aa bb = even2 aa `Equiv` even2 bb
 
-parop :: i -> i -> Formula (T21 i)
-parop aa bb = even2 aa `Equiv` odd2 bb
-
 addT2 :: i -> i -> i -> i -> Formula (T21 i)
 addT2 a b c d =
   -- 2+2 <=> (1,1)
   ((pTwo2 a `And` pTwo2 b) `Implies` (plus1 c `And` plus1 d)) `And`
   ((mTwo2 a `And` mTwo2 b) `Implies` (mins1 c `And` mins1 d)) `And`
   -- 2+1 1+2 <=> (1,0)
-  (((plus2 a `And` plus2 b) `And` parop a b)
+  (((pTwo2 a `And` pOne2 b) `Or` (pOne2 a `And` pTwo2 b))
     `Implies` (plus1 c `And` zero1 d)) `And`
-  (((mins2 a `And` mins2 b) `And` parop a b)
+  (((mTwo2 a `And` mOne2 b) `Or` (mOne2 a `And` mTwo2 b))
     `Implies` (mins1 c `And` zero1 d)) `And`
   -- 2+0 1+1 0+2 <=> (1,-1)
   (((pTwo2 a `And` zero2 b)
@@ -81,8 +78,7 @@ addT2 a b c d =
         `Or` (zero2 a `And` mTwo2 b)
         `Or` (mOne2 a `And` mOne2 b))
     `Implies` (mins1 c `And` plus1 d)) `And`
-  -- 2+(-1) -1+2<=> (0,1)
-  -- 1+0 0+1 <=> (0,1)
+  -- 2+(-1) -1+2 1+0 0+1 <=> (0,1)
   (((pTwo2 a `And` mOne2 b) `Or` (mOne2 a `And` pTwo2 b) `Or`
     (pOne2 a `And` zero2 b) `Or` (zero2 a `And` pOne2 b))
     `Implies` (zero1 c `And` plus1 d)) `And`
