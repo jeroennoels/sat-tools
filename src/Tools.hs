@@ -14,6 +14,13 @@ data T21 i = T2 i Fine2
            | T1 i Fine1
            deriving (Eq, Ord, Show)
 
+flipPM :: T21 i -> T21 i
+flipPM (T1 i PP) = T1 i MM
+flipPM (T1 i MM) = T1 i PP
+flipPM (T2 i P2) = T2 i M2
+flipPM (T2 i M2) = T2 i P2
+flipPM x@(T2 _ E2) = x
+
 plus1 :: i -> Formula (T21 i)
 plus1 i = Var (T1 i PP)
 
@@ -60,35 +67,25 @@ pareq :: i -> i -> Formula (T21 i)
 pareq aa bb = even2 aa `Equiv` even2 bb
 
 addT2 :: i -> i -> i -> i -> Formula (T21 i)
-addT2 a b c d =
+addT2 a b c d = x `And` fmap flipPM x
+  where x = addT2' a b c d `And` addT2' b a c d
+
+addT2' :: i -> i -> i -> i -> Formula (T21 i)
+addT2' a b c d =
   -- 2+2 <=> (1,1)
   ((pTwo2 a `And` pTwo2 b) `Implies` (plus1 c `And` plus1 d)) `And`
-  ((mTwo2 a `And` mTwo2 b) `Implies` (mins1 c `And` mins1 d)) `And`
-  -- 2+1 1+2 <=> (1,0)
-  (((pTwo2 a `And` pOne2 b) `Or` (pOne2 a `And` pTwo2 b))
-    `Implies` (plus1 c `And` zero1 d)) `And`
-  (((mTwo2 a `And` mOne2 b) `Or` (mOne2 a `And` mTwo2 b))
-    `Implies` (mins1 c `And` zero1 d)) `And`
-  -- 2+0 1+1 0+2 <=> (1,-1)
-  (((pTwo2 a `And` zero2 b)
-        `Or` (zero2 a `And` pTwo2 b)
-        `Or` (pOne2 a `And` pOne2 b))
+  -- 2+1 <=> (1,0)
+  ((pTwo2 a `And` pOne2 b) `Implies` (plus1 c `And` zero1 d)) `And`
+  -- 2+0 1+1 <=> (1,-1)
+  (((pTwo2 a `And` zero2 b) `Or` (pOne2 a `And` pOne2 b))
     `Implies` (plus1 c `And` mins1 d)) `And`
-  (((mTwo2 a `And` zero2 b)
-        `Or` (zero2 a `And` mTwo2 b)
-        `Or` (mOne2 a `And` mOne2 b))
-    `Implies` (mins1 c `And` plus1 d)) `And`
-  -- 2+(-1) -1+2 1+0 0+1 <=> (0,1)
-  (((pTwo2 a `And` mOne2 b) `Or` (mOne2 a `And` pTwo2 b) `Or`
-    (pOne2 a `And` zero2 b) `Or` (zero2 a `And` pOne2 b))
+  -- 2+(-1) 1+0 <=> (0,1)
+  (((pTwo2 a `And` mOne2 b) `Or` (pOne2 a `And` zero2 b))
     `Implies` (zero1 c `And` plus1 d)) `And`
-  (((mTwo2 a `And` pOne2 b) `Or` (pOne2 a `And` mTwo2 b) `Or`
-    (mOne2 a `And` zero2 b) `Or` (zero2 a `And` mOne2 b))
-    `Implies` (zero1 c `And` mins1 d)) `And`
-  -- 2+(-2) 1+(-1) 0+0 ... <=> (0,0)
-  (((((plus2 a `And` mins2 b) `Or` (mins2 a `And` plus2 b))
-        `And` pareq a b)
-      `Or` (zero2 a `And` zero2 b))
+  -- 2+(-2) 1+(-1) 0+0 <=> (0,0)
+  (((pTwo2 a `And` mTwo2 b)
+         `Or` (pOne2 a `And` mOne2 b)
+         `Or` (zero2 a `And` zero2 b))
     `Implies` (zero1 c `And` zero1 d))
 
 addABXY :: [Clause (T21 Char)]

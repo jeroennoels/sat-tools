@@ -56,7 +56,7 @@ runTests = sequence_ $
                   prop_Clauses]
 
 testDimacs :: IO ()
-testDimacs = dimacsOutput $ formulaToClauses $ multiplyDigits 'a' 'b' 'c'
+testDimacs = dimacsOutput $ addABXY
 
 main :: IO ()
-main = runTests
+main = testDimacs
