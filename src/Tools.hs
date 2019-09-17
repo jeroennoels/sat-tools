@@ -57,43 +57,43 @@ isValidT2 :: i -> Formula (T21 i)
 isValidT2 i = Not (plus2 i `And` mins2 i) `And` (zero2 i `Implies` even2 i)
 
 pareq :: i -> i -> Formula (T21 i)
-pareq aa bb = even2 aa `Equiv` even2 bb 
+pareq aa bb = even2 aa `Equiv` even2 bb
 
 parop :: i -> i -> Formula (T21 i)
-parop aa bb = even2 aa `Equiv` odd2 bb 
+parop aa bb = even2 aa `Equiv` odd2 bb
 
 addT2 :: i -> i -> i -> i -> Formula (T21 i)
-addT2 aa bb c d =
+addT2 a b c d =
   -- 2+2 <=> (1,1)
-  ((pTwo2 aa `And` pTwo2 bb) `Equiv` (plus1 c `And` plus1 d)) `And`
-  ((mTwo2 aa `And` mTwo2 bb) `Equiv` (mins1 c `And` mins1 d)) `And`
+  ((pTwo2 a `And` pTwo2 b) `Implies` (plus1 c `And` plus1 d)) `And`
+  ((mTwo2 a `And` mTwo2 b) `Implies` (mins1 c `And` mins1 d)) `And`
   -- 2+1 1+2 <=> (1,0)
-  (((plus2 aa `And` plus2 bb) `And` parop aa bb)
-    `Equiv` (plus1 c `And` zero1 d)) `And`
-  (((mins2 aa `And` mins2 bb) `And` parop aa bb)
-    `Equiv` (mins1 c `And` zero1 d)) `And`
+  (((plus2 a `And` plus2 b) `And` parop a b)
+    `Implies` (plus1 c `And` zero1 d)) `And`
+  (((mins2 a `And` mins2 b) `And` parop a b)
+    `Implies` (mins1 c `And` zero1 d)) `And`
   -- 2+0 1+1 0+2 <=> (1,-1)
-  (((pTwo2 aa `And` zero2 bb)
-        `Or` (zero2 aa `And` pTwo2 bb)
-        `Or` (pOne2 aa `And` pOne2 bb)) 
-    `Equiv` (plus1 c `And` mins1 d)) `And`
-  (((mTwo2 aa `And` zero2 bb)
-        `Or` (zero2 aa `And` mTwo2 bb)
-        `Or` (mOne2 aa `And` mOne2 bb)) 
-    `Equiv` (mins1 c `And` plus1 d)) `And`
+  (((pTwo2 a `And` zero2 b)
+        `Or` (zero2 a `And` pTwo2 b)
+        `Or` (pOne2 a `And` pOne2 b))
+    `Implies` (plus1 c `And` mins1 d)) `And`
+  (((mTwo2 a `And` zero2 b)
+        `Or` (zero2 a `And` mTwo2 b)
+        `Or` (mOne2 a `And` mOne2 b))
+    `Implies` (mins1 c `And` plus1 d)) `And`
   -- 2+(-1) -1+2<=> (0,1)
   -- 1+0 0+1 <=> (0,1)
-  (((pTwo2 aa `And` mOne2 bb) `Or` (mOne2 aa `And` pTwo2 bb) `Or`
-    (pOne2 aa `And` zero2 bb) `Or` (zero2 aa `And` pOne2 bb))
-    `Equiv` (zero1 c `And` plus1 d)) `And`
-  (((mTwo2 aa `And` pOne2 bb) `Or` (pOne2 aa `And` mTwo2 bb) `Or`
-    (mOne2 aa `And` zero2 bb) `Or` (zero2 aa `And` mOne2 bb))
-    `Equiv` (zero1 c `And` mins1 d)) `And`
+  (((pTwo2 a `And` mOne2 b) `Or` (mOne2 a `And` pTwo2 b) `Or`
+    (pOne2 a `And` zero2 b) `Or` (zero2 a `And` pOne2 b))
+    `Implies` (zero1 c `And` plus1 d)) `And`
+  (((mTwo2 a `And` pOne2 b) `Or` (pOne2 a `And` mTwo2 b) `Or`
+    (mOne2 a `And` zero2 b) `Or` (zero2 a `And` mOne2 b))
+    `Implies` (zero1 c `And` mins1 d)) `And`
   -- 2+(-2) 1+(-1) 0+0 ... <=> (0,0)
-  (((((plus2 aa `And` mins2 bb) `Or` (mins2 aa `And` plus2 bb))
-        `And` pareq aa bb)
-      `Or` (zero2 aa `And` zero2 bb))
-    `Equiv` (zero1 c `And` zero1 d)) 
+  (((((plus2 a `And` mins2 b) `Or` (mins2 a `And` plus2 b))
+        `And` pareq a b)
+      `Or` (zero2 a `And` zero2 b))
+    `Implies` (zero1 c `And` zero1 d))
 
 addABXY :: [Clause (T21 Char)]
 addABXY = formulaToClauses $ valid `And` addT2 'a' 'b' 'x' 'y'
@@ -150,11 +150,10 @@ testAddABXY assignment = abxy == fromMaybe False ref
      ref = referenceAdd (digit2 'a') (digit2 'b') (digit1 'x') (digit1 'y')
      abxy = evalClauses addABXY assignment
 
---testMultiply :: Bool
-testAdd = filter (not . testAddABXY) $ allAssignments vars
+testAdd :: Bool
+testAdd = all testAddABXY (allAssignments vars)
   where vars = distinctVariables addABXY
 
 
 result :: [String]
 result = ["Hello"]
-
