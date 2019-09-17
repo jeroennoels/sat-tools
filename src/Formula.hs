@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 module Formula (
   Formula (..), IntLabel (..),
   variables, elimImplication, moveNotDown,
@@ -16,6 +17,7 @@ data Formula i =
   | And (Formula i) (Formula i)
   | Equiv (Formula i) (Formula i)
   | Implies (Formula i) (Formula i)
+  deriving Functor
 
 -- In many examples we simply use Int to label the variables.
 newtype IntLabel = IntLabel Int deriving (Eq, Ord)
