@@ -1,12 +1,13 @@
 module Main (main) where
 
-import Tools
 import Formula
 import Eval
 import Arbitraries
 import Clauses
 import Dimacs
 import Arithmetic
+import Addition
+import Tools
 
 import Test.QuickCheck
 import Control.Arrow ((&&&))
