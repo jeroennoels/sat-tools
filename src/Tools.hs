@@ -7,88 +7,88 @@ import Eval
 import Control.Applicative (liftA2)
 import Data.Maybe
 
-data Fine1 = PP | MM deriving (Eq, Ord, Show)
-data Fine2 = P2 | M2 | E2 deriving (Eq, Ord, Show)
+data Fine1 = Pos1 | Neg1 deriving (Eq, Ord, Show)
+data Fine2 = Pos2 | Neg2 | Even2 deriving (Eq, Ord, Show)
 
-data T21 i = T2 i Fine2
-           | T1 i Fine1
+data T12 i = T1 i Fine1
+           | T2 i Fine2
            deriving (Eq, Ord, Show)
 
-flipPM :: T21 i -> T21 i
-flipPM (T1 i PP) = T1 i MM
-flipPM (T1 i MM) = T1 i PP
-flipPM (T2 i P2) = T2 i M2
-flipPM (T2 i M2) = T2 i P2
-flipPM x@(T2 _ E2) = x
+flipPosNeg :: T12 i -> T12 i
+flipPosNeg (T1 i Pos1) = T1 i Neg1
+flipPosNeg (T1 i Neg1) = T1 i Pos1
+flipPosNeg (T2 i Pos2) = T2 i Neg2
+flipPosNeg (T2 i Neg2) = T2 i Pos2
+flipPosNeg x@(T2 _ Even2) = x
 
-plus1 :: i -> Formula (T21 i)
-plus1 i = Var (T1 i PP)
+posT1 :: i -> Formula (T12 i)
+posT1 i = Var (T1 i Pos1)
 
-mins1 :: i -> Formula (T21 i)
-mins1 i = Var (T1 i MM)
+negT1 :: i -> Formula (T12 i)
+negT1 i = Var (T1 i Neg1)
 
-zero1 :: i -> Formula (T21 i)
-zero1 i = Not (plus1 i) `And` Not (mins1 i)
+zeroT1 :: i -> Formula (T12 i)
+zeroT1 i = Not (posT1 i) `And` Not (negT1 i)
 
-plus2 :: i -> Formula (T21 i)
-plus2 i = Var (T2 i P2)
+isValidT1 :: i -> Formula (T12 i)
+isValidT1 i = Not (posT1 i `And` negT1 i)
 
-mins2 :: i -> Formula (T21 i)
-mins2 i = Var (T2 i M2)
+posT2 :: i -> Formula (T12 i)
+posT2 i = Var (T2 i Pos2)
 
-even2 :: i -> Formula (T21 i)
-even2 i = Var (T2 i E2)
+negT2 :: i -> Formula (T12 i)
+negT2 i = Var (T2 i Neg2)
 
-odd2 :: i -> Formula (T21 i)
-odd2 = Not . even2
+evenT2 :: i -> Formula (T12 i)
+evenT2 i = Var (T2 i Even2)
 
-pTwo2 :: i -> Formula (T21 i)
-pTwo2 i = even2 i `And` plus2 i
+oddT2 :: i -> Formula (T12 i)
+oddT2 = Not . evenT2
 
-mTwo2 :: i -> Formula (T21 i)
-mTwo2 i = even2 i `And` mins2 i
+zeroT2 :: i -> Formula (T12 i)
+zeroT2 i = Not (posT2 i) `And` Not (negT2 i)
 
-pOne2 :: i -> Formula (T21 i)
-pOne2 i = odd2 i `And` plus2 i
+plusTwoT2 :: i -> Formula (T12 i)
+plusTwoT2 i = evenT2 i `And` posT2 i
 
-mOne2 :: i -> Formula (T21 i)
-mOne2 i = odd2 i `And` mins2 i
+minusTwoT2 :: i -> Formula (T12 i)
+minusTwoT2 i = evenT2 i `And` negT2 i
 
-zero2 :: i -> Formula (T21 i)
-zero2 i = Not (plus2 i) `And` Not (mins2 i)
+plusOneT2 :: i -> Formula (T12 i)
+plusOneT2 i = oddT2 i `And` posT2 i
 
-isValidT1 :: i -> Formula (T21 i)
-isValidT1 i = Not (plus1 i `And` mins1 i)
+minusOneT2 :: i -> Formula (T12 i)
+minusOneT2 i = oddT2 i `And` negT2 i
 
-isValidT2 :: i -> Formula (T21 i)
-isValidT2 i = Not (plus2 i `And` mins2 i) `And` (zero2 i `Implies` even2 i)
+isValidT2 :: i -> Formula (T12 i)
+isValidT2 i = Not (posT2 i `And` negT2 i) `And` (zeroT2 i `Implies` evenT2 i)
 
-pareq :: i -> i -> Formula (T21 i)
-pareq aa bb = even2 aa `Equiv` even2 bb
+addT2 :: i -> i -> i -> i -> Formula (T12 i)
+addT2 a b x y = commute `And` fmap flipPosNeg commute
+  where
+    commute = quadrant a b x y `And` quadrant b a x y
 
-addT2 :: i -> i -> i -> i -> Formula (T21 i)
-addT2 a b c d = x `And` fmap flipPM x
-  where x = addT2' a b c d `And` addT2' b a c d
+conjunction :: [Formula i] -> Formula i
+conjunction = foldl1 And
 
-addT2' :: i -> i -> i -> i -> Formula (T21 i)
-addT2' a b c d =
-  -- 2+2 <=> (1,1)
-  ((pTwo2 a `And` pTwo2 b) `Implies` (plus1 c `And` plus1 d)) `And`
-  -- 2+1 <=> (1,0)
-  ((pTwo2 a `And` pOne2 b) `Implies` (plus1 c `And` zero1 d)) `And`
-  -- 2+0 1+1 <=> (1,-1)
-  (((pTwo2 a `And` zero2 b) `Or` (pOne2 a `And` pOne2 b))
-    `Implies` (plus1 c `And` mins1 d)) `And`
-  -- 2+(-1) 1+0 <=> (0,1)
-  (((pTwo2 a `And` mOne2 b) `Or` (pOne2 a `And` zero2 b))
-    `Implies` (zero1 c `And` plus1 d)) `And`
-  -- 2+(-2) 1+(-1) 0+0 <=> (0,0)
-  (((pTwo2 a `And` mTwo2 b)
-         `Or` (pOne2 a `And` mOne2 b)
-         `Or` (zero2 a `And` zero2 b))
-    `Implies` (zero1 c `And` zero1 d))
+quadrant :: i -> i -> i -> i -> Formula (T12 i)
+quadrant a b x y = conjunction [
+  (plusTwoT2 a `And` plusTwoT2 b)         -- 2 + 2
+  `Implies` (posT1 x `And` posT1 y),      -- becomes (1,1)
+  (plusTwoT2 a `And` plusOneT2 b)         -- 2 + 1
+  `Implies` (posT1 x `And` zeroT1 y),     -- becomes (1,0)
+  ((plusTwoT2 a `And` zeroT2 b) `Or`      -- 2 + 0
+   (plusOneT2 a `And` plusOneT2 b))       -- 1 + 1
+  `Implies` (posT1 x `And` negT1 y),      -- becomes (1,-1)
+  ((plusTwoT2 a `And` minusOneT2 b) `Or`  -- 2 + (-1)
+   (plusOneT2 a `And` zeroT2 b))          -- 1 + 0
+  `Implies` (zeroT1 x `And` posT1 y),     -- becomes (0,1)
+  ((plusTwoT2 a `And` minusTwoT2 b) `Or`  -- 2 + (-2)
+   (plusOneT2 a `And` minusOneT2 b) `Or`  -- 1 + (-1)
+   (zeroT2 a `And` zeroT2 b))             -- 0 + 0
+  `Implies` (zeroT1 x `And` zeroT1 y)]    -- becomes (0,0)
 
-addABXY :: [Clause (T21 Char)]
+addABXY :: [Clause (T12 Char)]
 addABXY = formulaToClauses $ valid `And` addT2 'a' 'b' 'x' 'y'
   where
     valid = isValidT2 'a' `And` isValidT2 'b' `And`
@@ -96,12 +96,12 @@ addABXY = formulaToClauses $ valid `And` addT2 'a' 'b' 'x' 'y'
 
 
 -- A concrete variable assignment that represents one ternary digit
-data DigitT1 = DigitT1 {isPP :: Bool, isMM :: Bool}
+data DigitT1 = DigitT1 {isPos1 :: Bool, isNeg1 :: Bool}
 
-getDigitT1 :: Eq i => Assignment (T21 i) -> i -> DigitT1
+getDigitT1 :: Eq i => Assignment (T12 i) -> i -> DigitT1
 getDigitT1 a i = DigitT1 {
-  isPP = assign a (T1 i PP),
-  isMM = assign a (T1 i MM)}
+  isPos1 = assign a (T1 i Pos1),
+  isNeg1 = assign a (T1 i Neg1)}
 
 phi1 :: DigitT1 -> Maybe Int
 phi1 (DigitT1 True False) = Just 1
@@ -110,13 +110,13 @@ phi1 (DigitT1 False False) = Just 0
 phi1 (DigitT1 True True) = Nothing  -- forbidden
 
 
-data DigitT2 = DigitT2 {isP2 :: Bool, isM2 :: Bool, isE2 :: Bool}
+data DigitT2 = DigitT2 {isPos2 :: Bool, isNeg2 :: Bool, isEven2 :: Bool}
 
-getDigitT2 :: Eq i => Assignment (T21 i) -> i -> DigitT2
+getDigitT2 :: Eq i => Assignment (T12 i) -> i -> DigitT2
 getDigitT2 a i = DigitT2 {
-  isP2 = assign a (T2 i P2),
-  isM2 = assign a (T2 i M2),
-  isE2 = assign a (T2 i E2)}
+  isPos2 = assign a (T2 i Pos2),
+  isNeg2 = assign a (T2 i Neg2),
+  isEven2 = assign a (T2 i Even2)}
 
 phi2 :: DigitT2 -> Maybe Int
 phi2 (DigitT2 True False True) = Just 2
@@ -135,7 +135,7 @@ referenceAdd a b c d = liftA2 (==)
    (liftA2 base3 (phi1 c) (phi1 d))
 
 
-testAddABXY :: Assignment (T21 Char) -> Bool
+testAddABXY :: Assignment (T12 Char) -> Bool
 testAddABXY assignment = abxy == fromMaybe False ref
    where
      digit1 = getDigitT1 assignment

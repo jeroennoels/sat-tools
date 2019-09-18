@@ -50,7 +50,9 @@ assert msg ok = putStrLn $ msg ++ if ok then " -> OK" else error msg
 
 runTests :: IO ()
 runTests = sequence_ $
-  [assert "testMultiply" testMultiply] ++
+  [assert "testMultiply" testMultiply,
+   assert "testAddition" testAdd
+  ] ++
   map quickCheck [prop_elimImplication,
                   prop_moveNotDown,
                   prop_Clauses]
@@ -59,4 +61,4 @@ testDimacs :: IO ()
 testDimacs = dimacsOutput $ addABXY
 
 main :: IO ()
-main = testDimacs
+main = runTests
