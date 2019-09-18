@@ -1,7 +1,8 @@
 {-# LANGUAGE DeriveFunctor #-}
 module Formula (
   Formula (..), IntLabel (..),
-  variables, elimImplication, moveNotDown,
+  conjunction, variables,
+  elimImplication, moveNotDown,
   toCNF) where
 
 import Data.Set (Set)
@@ -18,6 +19,9 @@ data Formula i =
   | Equiv (Formula i) (Formula i)
   | Implies (Formula i) (Formula i)
   deriving Functor
+
+conjunction :: [Formula i] -> Formula i
+conjunction = foldl1 And
 
 -- In many examples we simply use Int to label the variables.
 newtype IntLabel = IntLabel Int deriving (Eq, Ord)

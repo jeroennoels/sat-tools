@@ -63,13 +63,11 @@ minusOneT2 i = oddT2 i `And` negT2 i
 isValidT2 :: i -> Formula (T12 i)
 isValidT2 i = Not (posT2 i `And` negT2 i) `And` (zeroT2 i `Implies` evenT2 i)
 
-addT2 :: i -> i -> i -> i -> Formula (T12 i)
-addT2 a b x y = commute `And` fmap flipPosNeg commute
+-- Exploit two symmetries: commutativity and flipping signs
+addDigitsT2 :: i -> i -> i -> i -> Formula (T12 i)
+addDigitsT2 a b x y = commute `And` fmap flipPosNeg commute
   where
     commute = quadrant a b x y `And` quadrant b a x y
-
-conjunction :: [Formula i] -> Formula i
-conjunction = foldl1 And
 
 quadrant :: i -> i -> i -> i -> Formula (T12 i)
 quadrant a b x y = conjunction [
@@ -89,11 +87,10 @@ quadrant a b x y = conjunction [
   `Implies` (zeroT1 x `And` zeroT1 y)]    -- becomes (0,0)
 
 addABXY :: [Clause (T12 Char)]
-addABXY = formulaToClauses $ valid `And` addT2 'a' 'b' 'x' 'y'
+addABXY = formulaToClauses $ valid `And` addDigitsT2 'a' 'b' 'x' 'y'
   where
-    valid = isValidT2 'a' `And` isValidT2 'b' `And`
-            isValidT1 'x' `And` isValidT1 'y'
-
+    valid = conjunction [isValidT2 'a', isValidT2 'b',
+                         isValidT1 'x', isValidT1 'y']
 
 -- A concrete variable assignment that represents one ternary digit
 data DigitT1 = DigitT1 {isPos1 :: Bool, isNeg1 :: Bool}
@@ -130,10 +127,9 @@ base3 :: Int -> Int -> Int
 base3 x y = 3*x + y
 
 referenceAdd :: DigitT2 -> DigitT2 -> DigitT1 -> DigitT1 -> Maybe Bool
-referenceAdd a b c d = liftA2 (==)
+referenceAdd a b x y = liftA2 (==)
    (liftA2 (+) (phi2 a) (phi2 b))
-   (liftA2 base3 (phi1 c) (phi1 d))
-
+   (liftA2 base3 (phi1 x) (phi1 y))
 
 testAddABXY :: Assignment (T12 Char) -> Bool
 testAddABXY assignment = abxy == fromMaybe False ref
@@ -143,8 +139,8 @@ testAddABXY assignment = abxy == fromMaybe False ref
      ref = referenceAdd (digit2 'a') (digit2 'b') (digit1 'x') (digit1 'y')
      abxy = evalClauses addABXY assignment
 
-testAdd :: Bool
-testAdd = all testAddABXY (allAssignments vars)
+testAddDigitsT2 :: Bool
+testAddDigitsT2 = all testAddABXY (allAssignments vars)
   where vars = distinctVariables addABXY
 
 
