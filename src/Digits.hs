@@ -9,7 +9,8 @@ import Eval
 class SignSymmetric j where
   flipPosNeg :: j -> j
 
--- Ternary digits in {-1,0,1}
+-- Ternary digits in {-1,0,1}.
+-- Think of i as coarse grained and j as fine grained.
 class IdentifyT1 i j | j -> i where
   posT1 :: i -> Formula j
   negT1 :: i -> Formula j
@@ -20,7 +21,7 @@ class IdentifyT1 i j | j -> i where
   isValidT1 i = Not (posT1 i `And` negT1 i)
 
 
--- Ternary digit in {-2,-1,0,1,2}
+-- Ternary digit in {-2,-1,0,1,2}.
 class IdentifyT2 i j | j -> i where
   posT2 :: i -> Formula j
   negT2 :: i -> Formula j
@@ -45,11 +46,11 @@ class IdentifyT2 i j | j -> i where
 data Fine1 = Pos1 | Neg1 deriving (Eq, Ord, Show)
 data Fine2 = Pos2 | Neg2 | Even2 deriving (Eq, Ord, Show)
 
-data T12 i = T1 i Fine1
-           | T2 i Fine2
-           deriving (Eq, Ord, Show)
+data T12 i1 i2 = T1 i1 Fine1
+               | T2 i2 Fine2
+               deriving (Eq, Ord, Show)
 
-flipPosNegT12 :: T12 i -> T12 i
+flipPosNegT12 :: T12 i1 i2 -> T12 i1 i2
 flipPosNegT12 (T1 i Pos1) = T1 i Neg1
 flipPosNegT12 (T1 i Neg1) = T1 i Pos1
 flipPosNegT12 (T2 i Pos2) = T2 i Neg2
@@ -57,14 +58,14 @@ flipPosNegT12 (T2 i Neg2) = T2 i Pos2
 flipPosNegT12 x@(T2 _ Even2) = x
 
 
-instance SignSymmetric (T12 i) where
+instance SignSymmetric (T12 i1 i2) where
   flipPosNeg = flipPosNegT12
 
-instance IdentifyT1 i (T12 i) where
+instance IdentifyT1 i1 (T12 i1 i2) where
   posT1 i = Var (T1 i Pos1)
   negT1 i = Var (T1 i Neg1)
 
-instance IdentifyT2 i (T12 i) where
+instance IdentifyT2 i2 (T12 i1 i2) where
   posT2 i = Var (T2 i Pos2)
   negT2 i = Var (T2 i Neg2)
   evenT2 i = Var (T2 i Even2)
@@ -73,7 +74,7 @@ instance IdentifyT2 i (T12 i) where
 -- A concrete variable assignment that represents one T1 digit.
 data DigitT1 = DigitT1 {isPos1 :: Bool, isNeg1 :: Bool}
 
-getDigitT1 :: Eq i => Assignment (T12 i) -> i -> DigitT1
+getDigitT1 :: Eq i1 => Assignment (T12 i1 i2) -> i1 -> DigitT1
 getDigitT1 a i = DigitT1 {
   isPos1 = assign a (T1 i Pos1),
   isNeg1 = assign a (T1 i Neg1)}
@@ -89,7 +90,7 @@ phi1 (DigitT1 True True) = Nothing  -- forbidden
 data DigitT2 = DigitT2 {isPos2 :: Bool, isNeg2 :: Bool, isEven2 :: Bool}
 
 -- Semantics.
-getDigitT2 :: Eq i => Assignment (T12 i) -> i -> DigitT2
+getDigitT2 :: Eq i2 => Assignment (T12 i1 i2) -> i2 -> DigitT2
 getDigitT2 a i = DigitT2 {
   isPos2 = assign a (T2 i Pos2),
   isNeg2 = assign a (T2 i Neg2),

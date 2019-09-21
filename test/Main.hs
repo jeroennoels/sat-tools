@@ -52,7 +52,8 @@ assert msg ok = putStrLn $ msg ++ if ok then " -> OK" else error msg
 runTests :: IO ()
 runTests = sequence_ $
   [assert "testMultiply" testMultiply,
-   assert "testAddition" testAddDigitsT2
+   assert "testAddDigitsT1" testAddDigitsT1,
+   assert "testAddDigitsT2" testAddDigitsT2
   ] ++
   map quickCheck [prop_elimImplication,
                   prop_moveNotDown,
