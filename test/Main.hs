@@ -8,9 +8,12 @@ import Dimacs
 import Arithmetic
 import Addition
 import Tools
+import Digits
 
+import System.Environment (getArgs)
 import Test.QuickCheck
 import Control.Arrow ((&&&))
+import Control.Applicative (liftA2)
 import Data.Set (Set)
 import qualified Data.Set as Set
 
@@ -63,4 +66,20 @@ testDimacs :: IO ()
 testDimacs = dimacsOutput $ addABXY
 
 main :: IO ()
-main = runTests
+main = getArgs >>= run
+
+readLinesFromFile :: FilePath -> IO [String]
+readLinesFromFile file = lines `fmap` readFile file  
+
+loadMapping :: IO [(Int, T12 Char Char)]
+loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf" 
+
+loadVariables :: IO [Int]
+loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
+    
+run :: [String] -> IO ()
+run ["t"] = runTests
+run ["p"] = dimacsOutput $ addABXY
+run ["i"] = loadMapping >>= print
+run ["s"] = loadVariables >>= print
+run ["m"] = liftA2 getModel loadVariables loadMapping >>= print 

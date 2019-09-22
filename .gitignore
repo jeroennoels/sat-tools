@@ -2,3 +2,5 @@ Main
 *.hi
 *.o
 *~
+out.dimacs
+problem.cnf

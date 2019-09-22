@@ -43,12 +43,12 @@ class IdentifyT2 i j | j -> i where
   minusOneT2 i = oddT2 i `And` negT2 i
 
 
-data Fine1 = Pos1 | Neg1 deriving (Eq, Ord, Show)
-data Fine2 = Pos2 | Neg2 | Even2 deriving (Eq, Ord, Show)
+data Fine1 = Pos1 | Neg1 deriving (Eq, Ord, Read, Show)
+data Fine2 = Pos2 | Neg2 | Even2 deriving (Eq, Ord, Read, Show)
 
 data T12 i1 i2 = T1 i1 Fine1
                | T2 i2 Fine2
-               deriving (Eq, Ord, Show)
+               deriving (Eq, Ord, Read, Show)
 
 flipPosNegT12 :: T12 i1 i2 -> T12 i1 i2
 flipPosNegT12 (T1 i Pos1) = T1 i Neg1
