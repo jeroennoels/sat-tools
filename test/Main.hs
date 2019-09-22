@@ -82,4 +82,5 @@ run ["t"] = runTests
 run ["p"] = dimacsOutput $ addABXY
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
-run ["m"] = liftA2 getModel loadVariables loadMapping >>= print 
+run ["m"] = liftA2 combine loadVariables loadMapping >>= print 
+  where combine results mapping = interpretation (getModel results mapping)
