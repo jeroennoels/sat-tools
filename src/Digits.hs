@@ -1,6 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Digits where
 
 import Formula
@@ -45,6 +46,12 @@ class IdentifyT2 i j | j -> i where
   plusTwoT2 i = evenT2 i `And` posT2 i
   plusOneT2 i = oddT2 i `And` posT2 i
   minusOneT2 i = oddT2 i `And` negT2 i
+
+equivalentT12 :: (IdentifyT1 i1 j, IdentifyT2 i2 j) => i1 -> i2 -> Formula j
+equivalentT12 a b = conjunction [
+  posT1 a  `Equiv` plusOneT2 b,
+  negT1 a  `Equiv` minusOneT2 b,
+  zeroT1 a `Equiv` zeroT2 b]
 
 
 data Fine1 = Pos1 | Neg1 deriving (Eq, Ord, Read, Show)
@@ -106,6 +113,13 @@ phi2 (DigitT2 False False True) = Just 0
 phi2 (DigitT2 False True False) = Just (-1)
 phi2 (DigitT2 False True True) = Just (-2)
 phi2 _ = Nothing  -- forbidden
+
+phi2Base3 :: [DigitT2] -> Maybe Int
+phi2Base3 digits = lsdfBase3 `fmap` sequence (map phi2 digits)
+
+lsdfBase3 :: [Int] -> Int
+lsdfBase3 (d:ds) = d + 3 * lsdfBase3 ds
+lsdfBase3 [] = 0
 
 sameDigit :: (Eq i1, Eq i2) => T12 i1 i2 -> T12 i1 i2 -> Bool
 sameDigit (T1 a _ ) (T1 b _ ) = a == b

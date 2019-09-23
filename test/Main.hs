@@ -78,7 +78,7 @@ loadVariables :: IO [Int]
 loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
     
 run :: [String] -> IO ()
-run ["t"] = runTests
+run ["t"] = assert "testAddNumbers" testAddNumbers
 run ["p"] = dimacsOutput $ addABXY
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
