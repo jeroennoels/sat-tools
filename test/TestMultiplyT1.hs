@@ -1,19 +1,13 @@
-module Arithmetic where
+module TestMultiplyT1 (testMultiply) where
 
 import Formula
 import Eval
 import Clauses
 import Digits
+import MultiplyT1
 
 import Control.Applicative (liftA2)
 import Data.Maybe
-
-
-multiplyDigits :: IdentifyT1 i j => i -> i -> i -> Formula j
-multiplyDigits a b c =
-  (((posT1 a `And` posT1 b) `Or` (negT1 a `And` negT1 b)) `Implies` posT1 c) `And`
-  (((posT1 a `And` negT1 b) `Or` (negT1 a `And` posT1 b)) `Implies` negT1 c) `And`
-  ((zeroT1 a `Or` zeroT1 b) `Implies` zeroT1 c)
 
 
 -- Expressing digits a,b and c with a * b = c

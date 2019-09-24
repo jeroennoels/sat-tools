@@ -5,10 +5,17 @@ import Eval
 import Arbitraries
 import Clauses
 import Dimacs
-import Arithmetic
-import Addition
-import Tools
 import Digits
+import AddT1
+import AddT2
+import AddNumbers
+import MultiplyT1
+import Tools
+
+import TestAddT1
+import TestAddT2
+import TestAddNumbers
+import TestMultiplyT1
 
 import System.Environment (getArgs)
 import Test.QuickCheck
@@ -77,7 +84,7 @@ loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
 run :: [String] -> IO ()
 run ["t"] = runTests
 run ["t2"] = sequence_ $ map print $ zip testAddNumbers [1..]
-run ["p"] = dimacsOutput $ addABXY_compiled
+run ["p"] = dimacsOutput $ addABXY
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
 run ["m"] = liftA2 combine loadVariables loadMapping >>= print 
