@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 module Clauses (
   Literal (..), Clause(..),
   distinctVariables,
@@ -11,10 +12,10 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 data Literal i = Positive i | Negative i
-  deriving Eq
+  deriving (Eq, Functor)
 
 newtype Clause i = Clause [Literal i]
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Functor, Show)
 
 var :: Literal i -> i
 var (Positive v) = v

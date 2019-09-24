@@ -62,9 +62,6 @@ runTests = sequence_ $
                   prop_moveNotDown,
                   prop_Clauses]
 
-testDimacs :: IO ()
-testDimacs = dimacsOutput $ addABXY
-
 main :: IO ()
 main = getArgs >>= run
 
@@ -78,8 +75,9 @@ loadVariables :: IO [Int]
 loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
     
 run :: [String] -> IO ()
-run ["t"] = sequence_ $ map print $ zip testAddNumbers [1..]
-run ["p"] = dimacsOutput $ addABXY
+run ["t"] = runTests
+run ["t2"] = sequence_ $ map print $ zip testAddNumbers [1..]
+run ["p"] = dimacsOutput $ addABXY_compiled
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
 run ["m"] = liftA2 combine loadVariables loadMapping >>= print 

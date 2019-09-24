@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Addition where
 
 import Formula
@@ -34,11 +35,24 @@ quadrant a b x y = conjunction [
    (zeroT2 a `And` zeroT2 b))             -- 0 + 0
   `Implies` (zeroT1 x `And` zeroT1 y)]    -- becomes (0,0)
 
-addABXY :: [Clause (T12 Char Char)]
-addABXY = formulaToClauses $ valid `And` addDigitsT2 'a' 'b' 'x' 'y'
+
+templateAddDigitsT2 :: [Clause (T12 Char Char)]
+templateAddDigitsT2 = formulaToClauses $ addDigitsT2 'a' 'b' 'x' 'y'
+
+addDigitsT2_compiled :: forall i1 i2 j . (IdentifyT1 i1 j, IdentifyT2 i2 j) =>
+    i2 -> i2 -> i1 -> i1 -> [Clause j]
+addDigitsT2_compiled a b x y = map (fmap substitution) templateAddDigitsT2
   where
-    valid = conjunction [isValidT2 'a', isValidT2 'b',
-                         isValidT1 'x', isValidT1 'y']
+    substitution :: T12 Char Char -> j
+    substitution = identifier . abstraction [('x',x), ('y',y)] [('a',a), ('b',b)]
+
+
+addABXY_compiled :: [Clause (T12 Char Char)]
+addABXY_compiled = concatMap formulaToClauses valid ++ compiled
+  where
+    compiled = addDigitsT2_compiled 'a' 'b' 'x' 'y'
+    valid :: [Formula (T12 Char Char)]
+    valid = [isValidT2 'a', isValidT2 'b', isValidT1 'x', isValidT1 'y']
 
 base3 :: Int -> Int -> Int
 base3 x y = 3*x + y
@@ -54,11 +68,11 @@ testAddABXY assignment = abxy == fromMaybe False ref
      digit1 = getDigitT1 assignment
      digit2 = getDigitT2 assignment
      ref = referenceAdd (digit2 'a') (digit2 'b') (digit1 'x') (digit1 'y')
-     abxy = evalClauses addABXY assignment
+     abxy = evalClauses addABXY_compiled assignment
 
 testAddDigitsT2 :: Bool
 testAddDigitsT2 = all testAddABXY (allAssignments vars)
-  where vars = distinctVariables addABXY
+  where vars = distinctVariables addABXY_compiled
 
 
 addDigitsT1 :: (IdentifyT1 i1 j, IdentifyT2 i2 j, SignSymmetric j) =>

@@ -21,22 +21,20 @@ verifiedInputSize a b c = if a == b && c == a+1
   then a else error "verifiedInputSize"
 
 addNumbers :: forall i1 i2 j .
-    (IdentifyT1 i1 j, IdentifyT2 i2 j, SignSymmetric j) =>
-    Gensym i1 -> [i2] -> [i2] -> [i2] -> Formula j
-addNumbers makeGensym as bs cs = conjunction $
-  valid ++ pairwise ++ lsd : msd : middle
-  where
-    n = verifiedInputSize (length as) (length bs) (length cs)
-    gensyms0 = map makeGensym [0..(n-1)]
-    gensyms1 = map makeGensym [n..(2*n-1)]  -- carry
-    cs' = init (tail cs)
-    valid = map isValidT1 (gensyms0 ++ gensyms1) :: [Formula j]
-    lsd = equivalentT12 (head gensyms0) (head cs) :: Formula j
-    msd = equivalentT12 (last gensyms1) (last cs) :: Formula j
-    pairwise = zipWith4 addDigitsT2 as bs gensyms1 gensyms0 :: [Formula j]
-    middle :: [Formula j]
-    middle = zipWith3 addDigitsT1 (tail gensyms0) (init gensyms1) cs'
-
+    (Ord j, IdentifyT1 i1 j, IdentifyT2 i2 j, SignSymmetric j) =>
+    Gensym i1 -> [i2] -> [i2] -> [i2] -> [Clause j]
+addNumbers makeGensym as bs cs = let
+  n = verifiedInputSize (length as) (length bs) (length cs)
+  gensyms0 = map makeGensym [0..(n-1)]
+  gensyms1 = map makeGensym [n..(2*n-1)]  -- carry
+  cs' = init (tail cs)
+  valid = map isValidT1 (gensyms0 ++ gensyms1) :: [Formula j]
+  lsd = equivalentT12 (head gensyms0) (head cs) :: Formula j
+  msd = equivalentT12 (last gensyms1) (last cs) :: Formula j
+  pairwise = zipWith4 addDigitsT2_compiled as bs gensyms1 gensyms0 :: [[Clause j]]
+  middle :: [Formula j]
+  middle = zipWith3 addDigitsT1 (tail gensyms0) (init gensyms1) cs'
+  in concatMap formulaToClauses (valid ++ lsd : msd : middle) ++ concat pairwise
 
 carryT4 :: Int -> (Int, Int)
 carryT4 4 = (1,1)
@@ -63,8 +61,8 @@ charGensym = (!!) ['A'..'Z']
 type CharId = T12 Char Char
 
 addSmallNumbers :: [Clause CharId]
-addSmallNumbers = formulaToClauses $
-    valid `And` addNumbers charGensym ['a','b'] ['c','d'] ['x','y','z']
+addSmallNumbers = formulaToClauses valid ++
+    addNumbers charGensym ['a','b'] ['c','d'] ['x','y','z']
   where
     valid = conjunction $ map isValidT2 ['a','b','c','d','x','y','z']
 

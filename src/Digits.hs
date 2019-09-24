@@ -148,3 +148,12 @@ showDigit (Right (i, x)) = show i ++ "(" ++ show (fromJust $ phi2 x) ++ ")"
 interpretation :: (Eq i1, Eq i2, Ord i1, Ord i2, Show i1, Show i2) =>
     [(T12 i1 i2, Bool)] -> [String]
 interpretation = map (showDigit . toDigit) . groupDigits
+
+abstraction :: (Eq a1, Eq a2, IdentifyT1 i1 j, IdentifyT2 i2 j) =>
+    [(a1,i1)] -> [(a2,i2)] -> T12 a1 a2 -> Formula j
+abstraction assoc1 _ (T1 a Pos1) = posT1 (fromJust $ lookup a assoc1)
+abstraction assoc1 _ (T1 a Neg1) = negT1 (fromJust $ lookup a assoc1)
+abstraction _ assoc2 (T2 a Pos2) = posT2 (fromJust $ lookup a assoc2)
+abstraction _ assoc2 (T2 a Neg2) = negT2 (fromJust $ lookup a assoc2)
+abstraction _ assoc2 (T2 a Even2) = evenT2 (fromJust $ lookup a assoc2)
+

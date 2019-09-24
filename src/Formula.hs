@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 module Formula (
   Formula (..), IntLabel (..),
-  conjunction, variables,
+  identifier, conjunction, variables,
   elimImplication, moveNotDown,
   toCNF) where
 
@@ -19,6 +19,10 @@ data Formula i =
   | Equiv (Formula i) (Formula i)
   | Implies (Formula i) (Formula i)
   deriving Functor
+
+-- partial
+identifier :: Formula i -> i
+identifier (Var i) = i
 
 conjunction :: [Formula i] -> Formula i
 conjunction = foldl1 And
