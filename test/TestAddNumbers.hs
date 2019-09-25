@@ -22,15 +22,17 @@ carryT4 1 = (0,1)
 carryT4 0 = (0,0)
 carryT4 k = (-a,-b) where (a,b) = carryT4 (-k)  -- symmetry
 
+
 referenceAddNumbers :: [DigitT2] -> [DigitT2] -> [DigitT2] -> Maybe Bool
-referenceAddNumbers [aa,bb] [cc,dd] [xx,yy,zz] =
-  let mabyeInts = sequence $ map phi2 [aa,bb,cc,dd,xx,yy,zz]
+referenceAddNumbers [a',b'] [c',d'] [x',y',z'] =
+  let mabyeInts = sequence $ map phi2 [a',b',c',d',x',y',z']
   in if isNothing mabyeInts
      then Nothing
      else let Just [a,b,c,d,x,y,z] = mabyeInts
               (car, lsd) = carryT4 (a + c)
               (msd, rem) = carryT4 (b + d)
           in Just $ [lsd, car + rem, msd] == [x,y,z]
+
 
 -- Quick hack for exploration and basic testing.
 charGensym :: Gensym Char
@@ -59,20 +61,13 @@ testAddSmallNumbers dummies variables trueInputs = let
   satisfiable = any (evalClauses addSmallNumbers) assignments
   in satisfiable == fromMaybe False ref
 
--- quick hack for exploration only
-isDummy :: T12 Char Char -> Bool
-isDummy (T2 _ _) = False
-isDummy (T1 _ _) = True
 
-falseIsError :: Bool -> Bool
-falseIsError True = True
-falseIsError False = error "Fail!"
-
-
-testAddNumbers = map
-  (falseIsError . all (testAddSmallNumbers dummies distinct)) chunked
+testAddNumbers :: Bool
+testAddNumbers = all (testAddSmallNumbers dummies distinct) power
   where
-    chunked = chunksOf 1000 pow
-    pow = Set.toList $ Set.powerSet inputs
     distinct = distinctVariables addSmallNumbers
     (dummies, inputs) = Set.partition isDummy distinct
+    power = Set.toList $ Set.powerSet inputs
+    isDummy :: T12 Char Char -> Bool
+    isDummy (T2 _ _) = False
+    isDummy (T1 _ _) = True

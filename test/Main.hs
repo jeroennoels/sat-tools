@@ -59,6 +59,10 @@ prop_Clauses f = formulaToClauses f <==> f
 assert :: String -> Bool -> IO ()
 assert msg ok = putStrLn $ msg ++ if ok then " -> OK" else error msg
 
+
+runSlowTests :: IO ()
+runSlowTests = assert "testAddNumbers" testAddNumbers
+
 runTests :: IO ()
 runTests = sequence_ $
   [assert "testMultiply" testMultiply,
@@ -82,9 +86,9 @@ loadVariables :: IO [Int]
 loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
     
 run :: [String] -> IO ()
-run ["t"] = runTests
-run ["t2"] = sequence_ $ map print $ zip testAddNumbers [1..]
-run ["p"] = dimacsOutput $ addABXY
+run ["test"] = runTests
+run ["slow"] = runSlowTests
+run ["out"] = dimacsOutput $ addABXY
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
 run ["m"] = liftA2 combine loadVariables loadMapping >>= print 
