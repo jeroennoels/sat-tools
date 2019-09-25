@@ -28,6 +28,6 @@ addNumbers makeGensym as bs cs = let
   lsd = equivalentT12 (head gensyms0) (head cs) :: Formula j
   msd = equivalentT12 (last gensyms1) (last cs) :: Formula j
   pairwise = zipWith4 addDigitsT2 as bs gensyms1 gensyms0 :: [[Clause j]]
-  middle :: [Formula j]
+  middle :: [[Clause j]]
   middle = zipWith3 addDigitsT1 (tail gensyms0) (init gensyms1) cs'
-  in concatMap formulaToClauses (valid ++ lsd : msd : middle) ++ concat pairwise
+  in concatMap formulaToClauses (lsd : msd: valid) ++ concat (pairwise ++ middle)

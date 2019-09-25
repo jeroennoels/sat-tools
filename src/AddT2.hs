@@ -15,7 +15,7 @@ makeFormula a b x y = commute `And` fmap flipPosNeg commute
               quadrant b a x y
 
 quadrant :: (IdentifyT1 i1 j, IdentifyT2 i2 j) =>
-    i2 -> i2 -> i1 -> i1 -> Formula j
+   i2 -> i2 -> i1 -> i1 -> Formula j
 quadrant a b x y = conjunction [
   (plusTwoT2 a `And` plusTwoT2 b)         -- 2 + 2
   `Implies` (posT1 x `And` posT1 y),      -- becomes (1,1)

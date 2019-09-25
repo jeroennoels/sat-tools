@@ -12,9 +12,9 @@ import Data.Maybe
 
 
 addABX :: [Clause CharId]
-addABX = formulaToClauses $ valid `And` addDigitsT1 'a' 'b' 'x'
+addABX = concatMap formulaToClauses valid ++ addDigitsT1 'a' 'b' 'x'
   where
-    valid = conjunction [isValidT1 'a', isValidT1 'b', isValidT2 'x']
+    valid = [isValidT1 'a', isValidT1 'b', isValidT2 'x']
 
 referenceAddT1 :: DigitT1 -> DigitT1 -> DigitT2 -> Maybe Bool
 referenceAddT1 a b x = liftA2 (+) (phi1 a) (phi1 b) === phi2 x
