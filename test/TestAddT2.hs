@@ -11,11 +11,11 @@ import Control.Applicative (liftA2)
 import Data.Maybe
 
 
-addABXY :: [Clause (T12 Char Char)]
+addABXY :: [Clause CharId]
 addABXY = concatMap formulaToClauses valid ++ addition
   where
     addition = addDigitsT2 'a' 'b' 'x' 'y'
-    valid :: [Formula (T12 Char Char)]
+    valid :: [Formula CharId]
     valid = [isValidT2 'a', isValidT2 'b', isValidT1 'x', isValidT1 'y']
 
 base3 :: Int -> Int -> Int
@@ -26,7 +26,7 @@ referenceAdd a b x y = liftA2 (==)
    (liftA2 (+) (phi2 a) (phi2 b))
    (liftA2 base3 (phi1 x) (phi1 y))
 
-testAddABXY :: Assignment (T12 Char Char) -> Bool
+testAddABXY :: Assignment CharId -> Bool
 testAddABXY assignment = abxy == fromMaybe False ref
    where
      digit1 = getDigitT1 assignment

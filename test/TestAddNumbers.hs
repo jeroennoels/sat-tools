@@ -38,8 +38,6 @@ referenceAddNumbers [a',b'] [c',d'] [x',y',z'] =
 charGensym :: Gensym Char
 charGensym = (!!) ['A'..'Z']
 
-type CharId = T12 Char Char
-
 addSmallNumbers :: [Clause CharId]
 addSmallNumbers = formulaToClauses valid ++
     addNumbers charGensym ['a','b'] ['c','d'] ['x','y','z']
@@ -68,6 +66,6 @@ testAddNumbers = all (testAddSmallNumbers dummies distinct) power
     distinct = distinctVariables addSmallNumbers
     (dummies, inputs) = Set.partition isDummy distinct
     power = Set.toList $ Set.powerSet inputs
-    isDummy :: T12 Char Char -> Bool
+    isDummy :: CharId -> Bool
     isDummy (T2 _ _) = False
     isDummy (T1 _ _) = True

@@ -14,7 +14,6 @@ makeFormula a b x y = commute `And` fmap flipPosNeg commute
     commute = quadrant a b x y `And`
               quadrant b a x y
 
-
 quadrant :: (IdentifyT1 i1 j, IdentifyT2 i2 j) =>
     i2 -> i2 -> i1 -> i1 -> Formula j
 quadrant a b x y = conjunction [
@@ -34,12 +33,13 @@ quadrant a b x y = conjunction [
   `Implies` (zeroT1 x `And` zeroT1 y)]    -- becomes (0,0)
 
 
-template :: [Clause (T12 Char Char)]
+-- Think of this as "compiling" into a reusable template
+template :: [Clause CharId]
 template = formulaToClauses $ makeFormula 'a' 'b' 'x' 'y'
 
 addDigitsT2 :: forall i1 i2 j . (IdentifyT1 i1 j, IdentifyT2 i2 j) =>
     i2 -> i2 -> i1 -> i1 -> [Clause j]
 addDigitsT2 a b x y = map (fmap substitution) template
   where
-    substitution :: T12 Char Char -> j
+    substitution :: CharId -> j
     substitution = identifier . abstraction [('x',x),('y',y)] [('a',a),('b',b)]

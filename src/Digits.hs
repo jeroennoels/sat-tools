@@ -157,3 +157,5 @@ abstraction _ assoc2 (T2 a Pos2) = posT2 (fromJust $ lookup a assoc2)
 abstraction _ assoc2 (T2 a Neg2) = negT2 (fromJust $ lookup a assoc2)
 abstraction _ assoc2 (T2 a Even2) = evenT2 (fromJust $ lookup a assoc2)
 
+-- Characters make for good identifiers in simple cases
+type CharId = T12 Char Char

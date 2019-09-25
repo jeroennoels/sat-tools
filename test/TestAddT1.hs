@@ -11,7 +11,7 @@ import Control.Applicative (liftA2)
 import Data.Maybe
 
 
-addABX :: [Clause (T12 Char Char)]
+addABX :: [Clause CharId]
 addABX = formulaToClauses $ valid `And` addDigitsT1 'a' 'b' 'x'
   where
     valid = conjunction [isValidT1 'a', isValidT1 'b', isValidT2 'x']
@@ -20,7 +20,7 @@ referenceAddT1 :: DigitT1 -> DigitT1 -> DigitT2 -> Maybe Bool
 referenceAddT1 a b x = liftA2 (+) (phi1 a) (phi1 b) === phi2 x
   where (===) = liftA2 (==)
 
-testAddABX :: Assignment (T12 Char Char) -> Bool
+testAddABX :: Assignment CharId -> Bool
 testAddABX assignment = abx == fromMaybe False ref
    where
      digit1 = getDigitT1 assignment

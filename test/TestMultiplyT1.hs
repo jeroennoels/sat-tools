@@ -11,7 +11,7 @@ import Data.Maybe
 
 
 -- Expressing digits a,b and c with a * b = c
-multiplyABC :: [Clause (T12 Char Char)]
+multiplyABC :: [Clause CharId]
 multiplyABC = formulaToClauses $ abcDigits `And` multiplyDigits 'a' 'b' 'c'
   where
     abcDigits = conjunction $ map isValidT1 "abc"
@@ -19,7 +19,7 @@ multiplyABC = formulaToClauses $ abcDigits `And` multiplyDigits 'a' 'b' 'c'
 referenceMultiply :: DigitT1 -> DigitT1 -> DigitT1 -> Maybe Bool
 referenceMultiply a b c = liftA2 (==) (liftA2 (*) (phi1 a) (phi1 b)) (phi1 c)
 
-testMultiplyABC :: Assignment (T12 Char Char) -> Bool
+testMultiplyABC :: Assignment CharId -> Bool
 testMultiplyABC assignment = abc == fromMaybe False ref
    where
      digit = getDigitT1 assignment

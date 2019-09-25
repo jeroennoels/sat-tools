@@ -79,7 +79,7 @@ main = getArgs >>= run
 readLinesFromFile :: FilePath -> IO [String]
 readLinesFromFile file = lines `fmap` readFile file  
 
-loadMapping :: IO [(Int, T12 Char Char)]
+loadMapping :: IO [(Int, CharId)]
 loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf" 
 
 loadVariables :: IO [Int]
