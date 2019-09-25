@@ -87,8 +87,9 @@ loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf"
 loadVariables :: IO [Int]
 loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
 
-loadModel :: IO [String]
-loadModel = interpretation `fmap` liftA2 getModel loadVariables loadMapping
+loadModel :: IO String
+loadModel = fmap (show . interpretation) model
+  where model = liftA2 getModel loadVariables loadMapping
 
 run :: [String] -> IO ()
 run ["test"] = runTests
