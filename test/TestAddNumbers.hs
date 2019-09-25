@@ -1,10 +1,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module TestAddNumbers (testAddNumbers) where
+module TestAddNumbers (testAddNumbers, addSmallNumbers) where
 
 import Formula
 import Clauses
 import Eval
 import Digits
+import DigitAssignment
 import AddNumbers
 
 import Data.Maybe

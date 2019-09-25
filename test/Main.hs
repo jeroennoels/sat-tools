@@ -6,6 +6,8 @@ import Arbitraries
 import Clauses
 import Dimacs
 import Digits
+import DigitAssignment
+import Model
 import AddT1
 import AddT2
 import AddNumbers
@@ -77,19 +79,21 @@ main :: IO ()
 main = getArgs >>= run
 
 readLinesFromFile :: FilePath -> IO [String]
-readLinesFromFile file = lines `fmap` readFile file  
+readLinesFromFile file = lines `fmap` readFile file
 
 loadMapping :: IO [(Int, CharId)]
-loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf" 
+loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf"
 
 loadVariables :: IO [Int]
 loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
-    
+
+loadModel :: IO [String]
+loadModel = interpretation `fmap` liftA2 getModel loadVariables loadMapping
+
 run :: [String] -> IO ()
 run ["test"] = runTests
 run ["slow"] = runSlowTests
-run ["out"] = dimacsOutput $ addABXY
+run ["out"] = dimacsOutput addSmallNumbers
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
-run ["m"] = liftA2 combine loadVariables loadMapping >>= print 
-  where combine results mapping = interpretation (getModel results mapping)
+run ["m"] = loadModel >>= print

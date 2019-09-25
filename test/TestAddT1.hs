@@ -5,6 +5,7 @@ import Formula
 import Clauses
 import Eval
 import Digits
+import DigitAssignment
 import AddT1
 
 import Control.Applicative (liftA2)

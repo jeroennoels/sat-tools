@@ -4,6 +4,7 @@ import Formula
 import Eval
 import Clauses
 import Digits
+import DigitAssignment
 import MultiplyT1
 
 import Control.Applicative (liftA2)

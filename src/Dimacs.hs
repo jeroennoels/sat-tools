@@ -43,7 +43,7 @@ readInts :: String -> [Int]
 readInts = map read . words
 
 readVariables :: [String] -> [Int]
-readVariables = readInts . drop 2 . head . filter (isPrefixOf "v ")
+readVariables = concat . map (readInts . drop 2) . filter (isPrefixOf "v ")
 
 getModel :: forall i . [Int] -> [(Int, i)] -> [(i, Bool)]
 getModel results mapping = mapMaybe render results
