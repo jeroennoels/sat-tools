@@ -88,7 +88,7 @@ loadVariables :: IO [Int]
 loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
 
 loadModel :: IO String
-loadModel = fmap (show . interpretation) model
+loadModel = fmap (show . interpretationT2) model
   where model = liftA2 getModel loadVariables loadMapping
 
 run :: [String] -> IO ()

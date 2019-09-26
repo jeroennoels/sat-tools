@@ -4,7 +4,7 @@ import Digits
 import DigitAssignment
 
 import Data.Maybe (fromJust)
-import Data.List (groupBy, sort)
+import Data.List (groupBy, sort, nub)
 import Data.Function (on)
 import Data.Either (partitionEithers)
 
@@ -19,48 +19,54 @@ groupDigits :: (Eq i1, Eq i2, Ord i1, Ord i2) =>
 groupDigits = map sort . groupBy (sameDigit `on` fst)
 
 
-data Model1 i = Model1 i DigitT1
-data Model2 i = Model2 i DigitT2
+data DigitValue i = DigitValue i Int
+  deriving Show
 
-idModel1 :: Model1 i -> i
-idModel1 (Model1 i _) = i
+unsafeValueT1 :: Show i => i -> DigitT1 -> DigitValue i
+unsafeValueT1 i x = case phi1 x of
+  Just a -> DigitValue i a
+  Nothing -> error $ "Not a valid digit: " ++ show i
 
-idModel2 :: Model2 i -> i
-idModel2 (Model2 i _) = i
-
-instance Show i => Show (Model1 i) where
-  show (Model1 i x) = show i ++ " -> " ++ show (fromJust (phi1 x))
-
-instance Show i => Show (Model2 i) where
-  show (Model2 i x) = show i ++ " -> " ++ show (fromJust (phi2 x))
+unsafeValueT2 :: Show i => i -> DigitT2 -> DigitValue i
+unsafeValueT2 i x = case phi2 x of
+  Just a -> DigitValue i a
+  Nothing -> error $ "Not a valid digit: " ++ show i
 
 
--- The next function (toDigitModel) is a bit of a hack: we assume the
--- input is ordered, complete and about one digit only.
+-- The next function is a bit of a hack: we assume the input is
+-- ordered, complete and about one digit only.
 
-toDigitModel :: (Eq i1, Eq i2) => [(T12 i1 i2, Bool)] ->
-  Either (Model1 i1) (Model2 i2)
+digitValue :: (Eq i1, Eq i2, Show i1, Show i2) => [(T12 i1 i2, Bool)] ->
+    Either (DigitValue i1) (DigitValue i2)
 -- left
-toDigitModel [(T1 a Pos1, p), (T1 b Neg1, n)]
+digitValue [(T1 a Pos1, p), (T1 b Neg1, n)]
   | a == b =
-  Left $ Model1 a (DigitT1 {isPos1 = p, isNeg1 = n})
+  Left . unsafeValueT1 a $ DigitT1 {isPos1 = p, isNeg1 = n}
 -- right
-toDigitModel [(T2 a Pos2, p), (T2 b Neg2, n), (T2 c Even2, e)]
+digitValue [(T2 a Pos2, p), (T2 b Neg2, n), (T2 c Even2, e)]
   | a == b && b == c =
-  Right $ Model2 a (DigitT2 {isPos2 = p, isNeg2 = n, isEven2 = e})
+  Right . unsafeValueT2 a $ DigitT2 {isPos2 = p, isNeg2 = n, isEven2 = e}
 -- bad input
-toDigitModel _ = error "input assumptions not satisfied"
+digitValue _ = error "input assumptions not satisfied"
 
 
-interpretation :: (Eq i1, Eq i2, Ord i1, Ord i2, Show i1, Show i2) =>
-    [(T12 i1 i2, Bool)] -> ([Model1 i1], [Model2 i2])
-interpretation = partitionEithers . map toDigitModel . groupDigits
+digitValues :: (Eq i1, Eq i2, Ord i1, Ord i2, Show i1, Show i2) =>
+    [(T12 i1 i2, Bool)] -> ([DigitValue i1], [DigitValue i2])
+digitValues = partitionEithers . map digitValue . groupDigits
 
 
-positionalToNumberT2 :: Eq i => [Model2 (Positional i)] -> [(i, Int)]
-positionalToNumberT2 ms = let
-  sameId = (==) `on` idPositional . idModel2
-  groups = groupBy sameId ms
-  in []
-  
+idDigitValue :: DigitValue (Positional i) -> i
+idDigitValue (DigitValue (Positional i _) _) = i
 
+numberValue :: Eq i => [DigitValue (Positional i)] -> (i, Int)
+numberValue ds = (id, sum (map term ds))
+  where
+    [id] = nub (map idDigitValue ds)
+    term (DigitValue (Positional _ k) a) = a * 3^k
+
+allNumberValues :: Eq i => [DigitValue (Positional i)] -> [(i, Int)]
+allNumberValues = map numberValue . groupBy ((==) `on` idDigitValue)
+
+interpretationT2 :: (Eq i1, Eq i2, Ord i1, Ord i2, Show i1, Show i2) =>
+    [(T12 i1 (Positional i2), Bool)] -> [(i2, Int)]
+interpretationT2 = allNumberValues . snd . digitValues

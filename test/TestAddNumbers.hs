@@ -73,7 +73,7 @@ testAddNumbers = all (testAddSmallNumbers dummies distinct) power
 
 
 nn :: Int
-nn = 3
+nn = 4
 
 as = map (Positional 'a') [0..(nn-1)]
 bs = map (Positional 'b') [0..(nn-1)]
