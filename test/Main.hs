@@ -81,7 +81,7 @@ main = getArgs >>= run
 readLinesFromFile :: FilePath -> IO [String]
 readLinesFromFile file = lines `fmap` readFile file
 
-loadMapping :: IO [(Int, CharId)]
+loadMapping :: IO [(Int, T12 (Char, Int) (Positional Char))]
 loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf"
 
 loadVariables :: IO [Int]
@@ -94,7 +94,7 @@ loadModel = fmap (show . interpretation) model
 run :: [String] -> IO ()
 run ["test"] = runTests
 run ["slow"] = runSlowTests
-run ["out"] = dimacsOutput addSmallNumbers
+run ["p"] = dimacsOutput addition
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
 run ["m"] = loadModel >>= print

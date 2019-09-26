@@ -22,15 +22,21 @@ groupDigits = map sort . groupBy (sameDigit `on` fst)
 data Model1 i = Model1 i DigitT1
 data Model2 i = Model2 i DigitT2
 
+idModel1 :: Model1 i -> i
+idModel1 (Model1 i _) = i
+
+idModel2 :: Model2 i -> i
+idModel2 (Model2 i _) = i
+
 instance Show i => Show (Model1 i) where
-  show (Model1 i x) = show i ++ "(" ++ show (fromJust $ phi1 x) ++ ")"
+  show (Model1 i x) = show i ++ " -> " ++ show (fromJust (phi1 x))
 
 instance Show i => Show (Model2 i) where
-  show (Model2 i x) = show i ++ "(" ++ show (fromJust $ phi2 x) ++ ")"
+  show (Model2 i x) = show i ++ " -> " ++ show (fromJust (phi2 x))
 
 
--- This is a bit of a hack: we assume the input is ordered, complete
--- and about one digit only.
+-- The next function (toDigitModel) is a bit of a hack: we assume the
+-- input is ordered, complete and about one digit only.
 
 toDigitModel :: (Eq i1, Eq i2) => [(T12 i1 i2, Bool)] ->
   Either (Model1 i1) (Model2 i2)
@@ -49,3 +55,12 @@ toDigitModel _ = error "input assumptions not satisfied"
 interpretation :: (Eq i1, Eq i2, Ord i1, Ord i2, Show i1, Show i2) =>
     [(T12 i1 i2, Bool)] -> ([Model1 i1], [Model2 i2])
 interpretation = partitionEithers . map toDigitModel . groupDigits
+
+
+positionalToNumberT2 :: Eq i => [Model2 (Positional i)] -> [(i, Int)]
+positionalToNumberT2 ms = let
+  sameId = (==) `on` idPositional . idModel2
+  groups = groupBy sameId ms
+  in []
+  
+

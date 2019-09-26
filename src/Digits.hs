@@ -91,3 +91,10 @@ abstraction _ assoc2 (T2 a Even2) = evenT2 (fromJust $ lookup a assoc2)
 
 -- Characters make for good identifiers in simple cases
 type CharId = T12 Char Char
+
+
+data Positional i = Positional i Int
+  deriving (Eq, Ord, Read, Show)
+
+idPositional :: Positional i -> i
+idPositional (Positional i _) = i

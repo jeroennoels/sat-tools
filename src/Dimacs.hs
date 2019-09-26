@@ -46,7 +46,7 @@ readVariables :: [String] -> [Int]
 readVariables = concat . map (readInts . drop 2) . filter (isPrefixOf "v ")
 
 getModel :: forall i . [Int] -> [(Int, i)] -> [(i, Bool)]
-getModel results mapping = mapMaybe render results
+getModel results mapping = mapMaybe render $ filter (/= 0) results
   where
     getId :: Int -> Maybe i
     getId result = lookup (abs result) mapping

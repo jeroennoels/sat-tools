@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module TestAddNumbers (testAddNumbers, addSmallNumbers) where
+module TestAddNumbers where
 
 import Formula
 import Clauses
@@ -70,3 +70,18 @@ testAddNumbers = all (testAddSmallNumbers dummies distinct) power
     isDummy :: CharId -> Bool
     isDummy (T2 _ _) = False
     isDummy (T1 _ _) = True
+
+
+nn :: Int
+nn = 3
+
+as = map (Positional 'a') [0..(nn-1)]
+bs = map (Positional 'b') [0..(nn-1)]
+cs = map (Positional 'c') [0..nn]
+
+intGensym :: Char -> Gensym (Char, Int)
+intGensym = (,)
+
+addition :: [Clause (T12 (Char, Int) (Positional Char))]
+addition = concatMap (formulaToClauses . isValidT2) (as ++ bs ++ cs)
+        ++ addNumbers (intGensym 'G') as bs cs
