@@ -53,6 +53,13 @@ equivalentT12 a b = conjunction [
   negT1 a  `Equiv` minusOneT2 b,
   zeroT1 a `Equiv` zeroT2 b]
 
+intEqualsT2 :: IdentifyT2 i j => Int -> i -> Formula j
+intEqualsT2 2 = plusTwoT2
+intEqualsT2 1 = plusOneT2
+intEqualsT2 0 = zeroT2
+intEqualsT2 (-1) = minusOneT2 
+intEqualsT2 (-2) = minusTwoT2
+
 
 data Fine1 = Pos1 | Neg1 deriving (Eq, Ord, Read, Show)
 data Fine2 = Pos2 | Neg2 | Even2 deriving (Eq, Ord, Read, Show)
@@ -81,6 +88,7 @@ instance IdentifyT2 i2 (T12 i1 i2) where
   negT2 i = Var (T2 i Neg2)
   evenT2 i = Var (T2 i Even2)
 
+-- From specific types back to polymophic types.
 abstraction :: (Eq a1, Eq a2, IdentifyT1 i1 j, IdentifyT2 i2 j) =>
     [(a1,i1)] -> [(a2,i2)] -> T12 a1 a2 -> Formula j
 abstraction assoc1 _ (T1 a Pos1) = posT1 (fromJust $ lookup a assoc1)
@@ -91,10 +99,3 @@ abstraction _ assoc2 (T2 a Even2) = evenT2 (fromJust $ lookup a assoc2)
 
 -- Characters make for good identifiers in simple cases
 type CharId = T12 Char Char
-
-
-data Positional i = Positional i Int
-  deriving (Eq, Ord, Read, Show)
-
-idPositional :: Positional i -> i
-idPositional (Positional i _) = i

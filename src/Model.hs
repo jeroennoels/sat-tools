@@ -1,6 +1,7 @@
 module Model where
 
 import Digits
+import Numbers
 import DigitAssignment
 
 import Data.Maybe (fromJust)
@@ -58,15 +59,15 @@ digitValues = partitionEithers . map digitValue . groupDigits
 idDigitValue :: DigitValue (Positional i) -> i
 idDigitValue (DigitValue (Positional i _) _) = i
 
-numberValue :: Eq i => [DigitValue (Positional i)] -> (i, Int)
+numberValue :: Eq i => [DigitValue (Positional i)] -> (i, Integer)
 numberValue ds = (id, sum (map term ds))
   where
     [id] = nub (map idDigitValue ds)
-    term (DigitValue (Positional _ k) a) = a * 3^k
+    term (DigitValue (Positional _ k) a) = fromIntegral a * 3^k
 
-allNumberValues :: Eq i => [DigitValue (Positional i)] -> [(i, Int)]
+allNumberValues :: Eq i => [DigitValue (Positional i)] -> [(i, Integer)]
 allNumberValues = map numberValue . groupBy ((==) `on` idDigitValue)
 
 interpretationT2 :: (Eq i1, Eq i2, Ord i1, Ord i2, Show i1, Show i2) =>
-    [(T12 i1 (Positional i2), Bool)] -> [(i2, Int)]
+    [(T12 i1 (Positional i2), Bool)] -> [(i2, Integer)]
 interpretationT2 = allNumberValues . snd . digitValues

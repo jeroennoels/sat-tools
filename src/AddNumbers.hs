@@ -4,13 +4,11 @@ module AddNumbers (addNumbers, Gensym) where
 import Formula
 import Clauses
 import Digits
+import Numbers
 import AddT1
 import AddT2
 
 import Data.List (zipWith3, zipWith4)
-
-
-type Gensym i = Int -> i
 
 verifiedInputSize :: Int -> Int -> Int -> Int
 verifiedInputSize a b c = if a == b && c == a+1

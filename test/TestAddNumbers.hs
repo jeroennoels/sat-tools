@@ -5,6 +5,7 @@ import Formula
 import Clauses
 import Eval
 import Digits
+import Numbers
 import DigitAssignment
 import AddNumbers
 
@@ -73,11 +74,11 @@ testAddNumbers = all (testAddSmallNumbers dummies distinct) power
 
 
 nn :: Int
-nn = 4
+nn = 100
 
-as = map (Positional 'a') [0..(nn-1)]
-bs = map (Positional 'b') [0..(nn-1)]
-cs = map (Positional 'c') [0..nn]
+as = makeNumber 'a' nn
+bs = makeNumber 'b' nn
+cs = makeNumber 'c' (nn + 1)
 
 intGensym :: Char -> Gensym (Char, Int)
 intGensym = (,)

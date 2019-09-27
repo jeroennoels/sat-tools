@@ -7,6 +7,7 @@ import Clauses
 import Dimacs
 import Digits
 import DigitAssignment
+import Numbers
 import Model
 import AddT1
 import AddT2
