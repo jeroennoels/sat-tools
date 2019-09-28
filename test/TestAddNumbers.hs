@@ -74,7 +74,7 @@ testAddNumbers = all (testAddSmallNumbers dummies distinct) power
 
 
 nn :: Int
-nn = 100
+nn = 20
 
 as = makeNumber 'a' nn
 bs = makeNumber 'b' nn
@@ -86,3 +86,4 @@ intGensym = (,)
 addition :: [Clause (T12 (Char, Int) (Positional Char))]
 addition = concatMap (formulaToClauses . isValidT2) (as ++ bs ++ cs)
         ++ addNumbers (intGensym 'G') as bs cs
+        ++ integerEqualsNumberT2 123456 cs
