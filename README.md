@@ -1,1 +1,1 @@
-Summer holiday fun.
+This is an attempt to reduce non-linear integer arithmetic to boolean satisfiability.
