@@ -7,6 +7,7 @@ import Clauses
 import Digits
 import Numbers
 import AddT1
+import AddNumbers
 import MultiplyT1
 
 import Data.Tuple (swap)
@@ -15,7 +16,7 @@ import Data.List (partition)
 
 -- must be even
 symN :: Int
-symN = 4
+symN = 6
 
 halfN :: Int
 halfN = div symN 2
@@ -103,7 +104,7 @@ zeroOutside diagonalId pairs = concatMap forPair pairs
 as = map Number $ makeNumber 'a' (symN + 1)
 bs = map Number $ makeNumber 'b' (symN + 1)
 
-data Quux a b = GensymId a | Number (Positional b) 
+data Quux a b = GensymId a | Number (Positional b)
   deriving (Eq, Ord, Read, Show)
 
 getNumber :: Quux a b -> Maybe (Positional b)
@@ -111,9 +112,9 @@ getNumber (Number p) = Just p
 getNumber _ = Nothing
 
 type Chint = (Char, Int)
-  
+
 makeGensym :: Char -> Int -> Quux Chint a
-makeGensym c n = GensymId (c,n) 
+makeGensym c n = GensymId (c,n)
 
 biDiagonal :: Int -> [Positional Chint]
 biDiagonal k = makeNumber ('D',k) (2 * symN + 1)
@@ -124,8 +125,8 @@ bisectional = makeNumber ('B',0) (2 * symN + 1)
 
 snakeClauses :: Int -> [Clause (T12 (Quux Chint Char) (Positional Chint))]
 snakeClauses k = validDiagonal ++
-  zeroOutside ('D',k) outside ++ 
-  productsInside (makeGensym 'P') as bs ('D',k) inside 
+  zeroOutside ('D',k) outside ++
+  productsInside (makeGensym 'P') as bs ('D',k) inside
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) (biDiagonal k)
     (inside, outside) = snakeInsideOut k
@@ -133,15 +134,24 @@ snakeClauses k = validDiagonal ++
 
 bisectClauses :: [Clause (T12 (Quux Chint Char) (Positional Chint))]
 bisectClauses = validDiagonal ++
-  productsInsideBisect (makeGensym 'P') as bs ('B',0) [0..symN] 
+  productsInsideBisect (makeGensym 'P') as bs ('B',0) [0..symN]
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) bisectional
-  
 
-test = snakeClauses 0 ++ snakeClauses 1 ++ bisectClauses ++
+
+cs = makeNumber ('c',0) (2 * symN + 2)
+ds = makeNumber ('d',0) (2 * symN + 2)
+us = makeNumber ('u',0) (2 * symN + 3)
+
+test = concat (map snakeClauses [0..(halfN-1)]) ++
+  bisectClauses ++
   concatMap (formulaToClauses . isValidT1) (as ++ bs) ++
-  integerEqualsNumberT1 66 as ++
-  integerEqualsNumberT1 83 bs 
+  concatMap (formulaToClauses . isValidT2) (cs ++ ds ++ us) ++
+  addNumbers (makeGensym 'G') (biDiagonal 0) (biDiagonal 1) cs ++
+  addNumbers (makeGensym 'H') (biDiagonal 2) bisectional ds ++
+  addNumbers (makeGensym 'U') cs ds us ++
+  integerEqualsNumberT2 126800 us
+  
 
 verifiedInput :: Int -> Int -> Int
 verifiedInput lenX lenY = if lenX == lenY && lenX == 2 * symN
