@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 module Clauses (
   Literal (..), Clause(..),
-  distinctVariables,
+  distinctVariables, normalizeClauses,
   formulaToClauses) where
 
 import Formula

@@ -1,14 +1,15 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 module Model where
 
 import Digits
 import Numbers
 import DigitAssignment
 
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, mapMaybe)
 import Data.List (groupBy, sort, nub)
 import Data.Function (on)
 import Data.Either (partitionEithers)
-
 
 sameDigit :: (Eq i1, Eq i2) => T12 i1 i2 -> T12 i1 i2 -> Bool
 sameDigit (T1 a _ ) (T1 b _ ) = a == b
@@ -68,6 +69,37 @@ numberValue ds = (id, sum (map term ds))
 allNumberValues :: Eq i => [DigitValue (Positional i)] -> [(i, Integer)]
 allNumberValues = map numberValue . groupBy ((==) `on` idDigitValue)
 
-interpretationT2 :: (Eq i1, Eq i2, Ord i1, Ord i2, Show i1, Show i2) =>
-    [(T12 i1 (Positional i2), Bool)] -> [(i2, Integer)]
-interpretationT2 = allNumberValues . snd . digitValues
+
+interpretationT1 :: forall i1 i2 i .
+    (Eq i1, Eq i2, Ord i, Ord i1, Ord i2, Show i, Show i1, Show i2) =>
+    (i1 -> Maybe (Positional i)) -> [(T12 i1 i2, Bool)] -> [(i, Integer)]
+interpretationT1 pos = allNumberValues . fst . digitValues . mapMaybe extract
+  where
+    extract :: (T12 i1 i2, Bool) -> Maybe (T12 (Positional i) i2, Bool)
+    extract = maybeFirst (numberT1 pos)
+
+
+-- TODO eliminate copy/paste code
+interpretationT2 :: forall i1 i2 i .
+    (Eq i1, Eq i2, Ord i, Ord i1, Ord i2, Show i, Show i1, Show i2) =>
+    (i2 -> Maybe (Positional i)) -> [(T12 i1 i2, Bool)] -> [(i, Integer)]
+interpretationT2 pos = allNumberValues . snd . digitValues . mapMaybe extract
+  where
+    extract :: (T12 i1 i2, Bool) -> Maybe (T12 i1 (Positional i), Bool)
+    extract = maybeFirst (numberT2 pos)
+
+
+maybeFirst :: (a -> Maybe b) -> (a,c) -> Maybe (b,c)
+maybeFirst f (a,c) = (,c) `fmap` f a
+
+
+numberT1 :: (i1 -> Maybe (Positional i)) ->
+    T12 i1 i2 -> Maybe (T12 (Positional i) i2)
+numberT1 f (T1 i a) = flip T1 a `fmap` f i
+numberT1 _ (T2 _ _) = Nothing
+
+
+numberT2 :: (i2 -> Maybe (Positional i)) ->
+    T12 i1 i2 -> Maybe (T12 i1 (Positional i))
+numberT2 f (T2 i a) = flip T2 a `fmap` f i
+numberT2 _ (T1 _ _) = Nothing

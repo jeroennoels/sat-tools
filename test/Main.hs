@@ -13,6 +13,7 @@ import AddT1
 import AddT2
 import AddNumbers
 import MultiplyT1
+import MultiplyNumbers
 import Tools
 
 import TestAddT1
@@ -82,20 +83,20 @@ main = getArgs >>= run
 readLinesFromFile :: FilePath -> IO [String]
 readLinesFromFile file = lines `fmap` readFile file
 
-loadMapping :: IO [(Int, T12 (Char, Int) (Positional Char))]
+loadMapping :: IO [(Int, (T12 (Quux Chint Char) (Positional Chint)))]
 loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf"
 
 loadVariables :: IO [Int]
 loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
 
 loadModel :: IO String
-loadModel = fmap (show . interpretationT2) model
+loadModel = fmap (show . (interpretationT1 getNumber &&& interpretationT2 Just)) model
   where model = liftA2 getModel loadVariables loadMapping
 
 run :: [String] -> IO ()
 run ["test"] = runTests
 run ["slow"] = runSlowTests
-run ["p"] = dimacsOutput addition
+run ["p"] = dimacsOutput test
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
 run ["m"] = loadModel >>= print
