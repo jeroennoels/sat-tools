@@ -65,6 +65,13 @@ cellSumMirrors gensym1 addTwoCells xs ys pair = let
   in clauses1 ++ clauses2 ++ clauses
 
 
+cellBisect :: forall i1 i2 j . (Ord j, IdentifyT1 i1 j, IdentifyT2 i2 j) =>
+    Gensym i1 -> i2 -> [i1] -> [i1] -> Int -> [Clause j]
+cellBisect gensym1 cellT2 xs ys a = let
+  (g, clauses) = cell gensym1 xs ys (a,a)
+  in clauses ++ formulaToClauses (equivalentT12 g cellT2)
+
+
 -- input is LSFD
 productsInside :: (Ord i1, Ord i2) => Gensym i1 ->
     [i1] -> [i1] -> i2 -> [(Int,Int)] -> [Clause (T12 i1 (Positional i2))]
@@ -72,6 +79,18 @@ productsInside gensym xs ys diagonalId pairs = concatMap forPair pairs
   where
     addTwoCells (a,b) = Positional diagonalId (a+b)
     forPair pair = cellSumMirrors gensym (addTwoCells pair) xs ys pair
+
+
+-- input is LSFD
+productsInsideBisect :: (Ord i1, Ord i2) => Gensym i1 ->
+    [i1] -> [i1] -> i2 -> [Int] -> [Clause (T12 i1 (Positional i2))]
+productsInsideBisect gensym xs ys diagonalId as =
+  concatMap forEntry as ++ holesAreZero
+  where
+    productBisect a = Positional diagonalId (2*a)
+    hole a = Positional diagonalId (2*a-1)
+    forEntry a = cellBisect gensym (productBisect a) xs ys a
+    holesAreZero = concatMap (formulaToClauses . zeroT2 . hole) (tail as)
 
 
 zeroOutside :: (Ord i1, Ord i2) =>
@@ -99,14 +118,30 @@ makeGensym c n = GensymId (c,n)
 biDiagonal :: Int -> [Positional Chint]
 biDiagonal k = makeNumber ('D',k) (2 * symN + 1)
 
+bisectional :: [Positional Chint]
+bisectional = makeNumber ('B',0) (2 * symN + 1)
+
+
 snakeClauses :: Int -> [Clause (T12 (Quux Chint Char) (Positional Chint))]
-snakeClauses k = validDiagonal ++ zeroOutside ('D',k) outside ++
+snakeClauses k = validDiagonal ++
+  zeroOutside ('D',k) outside ++ 
   productsInside (makeGensym 'P') as bs ('D',k) inside 
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) (biDiagonal k)
     (inside, outside) = snakeInsideOut k
 
-test = snakeClauses 0 ++ snakeClauses 1 ++ concatMap (formulaToClauses . isValidT1) (as ++ bs)
+
+bisectClauses :: [Clause (T12 (Quux Chint Char) (Positional Chint))]
+bisectClauses = validDiagonal ++
+  productsInsideBisect (makeGensym 'P') as bs ('B',0) [0..symN] 
+  where
+    validDiagonal = concatMap (formulaToClauses . isValidT2) bisectional
+  
+
+test = snakeClauses 0 ++ snakeClauses 1 ++ bisectClauses ++
+  concatMap (formulaToClauses . isValidT1) (as ++ bs) ++
+  integerEqualsNumberT1 66 as ++
+  integerEqualsNumberT1 83 bs 
 
 verifiedInput :: Int -> Int -> Int
 verifiedInput lenX lenY = if lenX == lenY && lenX == 2 * symN

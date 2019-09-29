@@ -17,10 +17,18 @@ idPositional (Positional i _) = i
 makeNumber :: i -> Int -> [Positional i]
 makeNumber i n = map (Positional i) [0..(n-1)]
 
+
+integerEqualsNumberT1 :: (Ord i1, Ord i2) =>
+    Integer -> [i1] -> [Clause (T12 i1 i2)]
+integerEqualsNumberT1 x ab = concatMap formulaToClauses $
+  zipWith intEqualsT1 (parseForT1 x ++ repeat 0) ab
+
+-- Think carefully about the redundancy of the representation here. 
 integerEqualsNumberT2 :: (Ord i1, Ord i2) =>
-    Integer -> [Positional i2] -> [Clause (T12 i1 (Positional i2))]
+    Integer -> [i2] -> [Clause (T12 i1 i2)]
 integerEqualsNumberT2 x ab = concatMap formulaToClauses $
   zipWith intEqualsT2 (parseForT1 x ++ repeat 0) ab
+
 
 -- LSDF
 parseForT1 :: Integer -> [Int]

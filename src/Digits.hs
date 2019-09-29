@@ -53,6 +53,11 @@ equivalentT12 a b = conjunction [
   negT1 a  `Equiv` minusOneT2 b,
   zeroT1 a `Equiv` zeroT2 b]
 
+intEqualsT1 :: IdentifyT1 i j => Int -> i -> Formula j
+intEqualsT1 1 = posT1
+intEqualsT1 0 = zeroT1
+intEqualsT1 (-1) = negT1
+
 intEqualsT2 :: IdentifyT2 i j => Int -> i -> Formula j
 intEqualsT2 2 = plusTwoT2
 intEqualsT2 1 = plusOneT2

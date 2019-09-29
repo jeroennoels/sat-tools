@@ -93,7 +93,7 @@ loadModel :: IO String
 loadModel = fmap (show . interpretation) model
   where model = liftA2 getModel loadVariables loadMapping
         interpretation = interpretationT1 getNumber &&& interpretationT2 Just
-        
+
 run :: [String] -> IO ()
 run ["test"] = runTests
 run ["slow"] = runSlowTests
