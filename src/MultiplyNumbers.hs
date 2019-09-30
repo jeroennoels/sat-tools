@@ -16,7 +16,7 @@ import Data.List (partition)
 
 -- must be even
 symN :: Int
-symN = 6
+symN = 10
 
 halfN :: Int
 halfN = div symN 2
@@ -50,8 +50,7 @@ verifiedAsymmetricPair (a,b) = if a > b
 cell :: (Ord j, IdentifyT1 i1 j) =>
     Gensym i1 -> [i1] -> [i1] -> (Int,Int) -> (i1, [Clause j])
 cell gensym xs ys (a,b) = let
-  size = 2 * symN
-  prod = gensym (a * size + b)
+  prod = gensym (a * (symN + 1) + b)
   formula = isValidT1 prod `And` multiplyDigits (xs !! a) (ys !! b) prod
   in (prod, formulaToClauses formula)
 
@@ -139,18 +138,29 @@ bisectClauses = validDiagonal ++
     validDiagonal = concatMap (formulaToClauses . isValidT2) bisectional
 
 
-cs = makeNumber ('c',0) (2 * symN + 2)
-ds = makeNumber ('d',0) (2 * symN + 2)
-us = makeNumber ('u',0) (2 * symN + 3)
+c1 = makeNumber ('c',1) (2 * symN + 2)
+c2 = makeNumber ('c',2) (2 * symN + 2)
+c3 = makeNumber ('c',3) (2 * symN + 2)
+tt = makeNumber ('t',0) (2 * symN + 2)
+
+u1 = makeNumber ('u',1) (2 * symN + 3)
+u2 = makeNumber ('u',2) (2 * symN + 3)
+
+z0 = makeNumber ('z',0) (2 * symN + 4)
 
 test = concat (map snakeClauses [0..(halfN-1)]) ++
   bisectClauses ++
   concatMap (formulaToClauses . isValidT1) (as ++ bs) ++
-  concatMap (formulaToClauses . isValidT2) (cs ++ ds ++ us) ++
-  addNumbers (makeGensym 'G') (biDiagonal 0) (biDiagonal 1) cs ++
-  addNumbers (makeGensym 'H') (biDiagonal 2) bisectional ds ++
-  addNumbers (makeGensym 'U') cs ds us ++
-  integerEqualsNumberT2 126800 us
+  concatMap (formulaToClauses . isValidT2)
+      (concat [c1,c2,c3,u1,u2,z0,tt]) ++
+  addNumbers (makeGensym 'G') (biDiagonal 0) (biDiagonal 1) c1 ++
+  addNumbers (makeGensym 'H') (biDiagonal 2) (biDiagonal 3) c2 ++
+  addNumbers (makeGensym 'I') (biDiagonal 4) bisectional c3 ++
+  addNumbers (makeGensym 'U') c1 c2 u1 ++
+  addNumbers (makeGensym 'V') c3 tt u2 ++
+  addNumbers (makeGensym 'W') u1 u2 z0 ++
+  integerEqualsNumberT2 (-51683 * 67211) tt ++
+  integerEqualsNumberT2 0 z0  
   
 
 verifiedInput :: Int -> Int -> Int
