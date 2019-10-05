@@ -12,20 +12,11 @@ import MultiplyT1
 
 import Data.Tuple (swap)
 import Data.List (partition)
-
+import Data.Maybe
 
 -- must be even
 symN :: Int
-symN = 10
-
-halfN :: Int
-halfN = div symN 2
-
-delta1 :: [Int]
-delta1 = [(-halfN)..halfN]
-
-delta2 :: [Int]
-delta2 = [(-halfN)..(halfN-1)]
+symN = 14
 
 shift :: (Int,Int) -> Int -> (Int,Int)
 shift (a,b) c = (a+c, b+c)
@@ -37,6 +28,10 @@ snake :: Int -> [(Int,Int)]
 snake k = let (a,b) = (symN-k, k)  -- a+b == symN
   in map (shift (a,b)) delta1 ++
      map (shift (a,b+1)) delta2
+  where
+    halfN = div symN 2 
+    delta1 = [(-halfN)..halfN]
+    delta2 = [(-halfN)..(halfN-1)]
 
 snakeInsideOut :: Int -> ([(Int,Int)], [(Int,Int)])
 snakeInsideOut k = partition inside (snake k)
@@ -100,9 +95,6 @@ zeroOutside diagonalId pairs = concatMap forPair pairs
     forPair (a,b) = formulaToClauses $ zeroT2 (Positional diagonalId (a+b))
 
 
-as = map Number $ makeNumber 'a' (symN + 1)
-bs = map Number $ makeNumber 'b' (symN + 1)
-
 data Quux a b = GensymId a | Number (Positional b)
   deriving (Eq, Ord, Read, Show)
 
@@ -112,8 +104,8 @@ getNumber _ = Nothing
 
 type Chint = (Char, Int)
 
-makeGensym :: Char -> Int -> Quux Chint a
-makeGensym c n = GensymId (c,n)
+makeGensym :: Int -> Char -> Int -> Quux Chint a
+makeGensym k c n = GensymId (c, k+n)
 
 biDiagonal :: Int -> [Positional Chint]
 biDiagonal k = makeNumber ('D',k) (2 * symN + 1)
@@ -122,46 +114,65 @@ bisectional :: [Positional Chint]
 bisectional = makeNumber ('B',0) (2 * symN + 1)
 
 
-snakeClauses :: Int -> [Clause (T12 (Quux Chint Char) (Positional Chint))]
-snakeClauses k = validDiagonal ++
+snakeClauses :: [Quux Chint Char] -> [Quux Chint Char] ->
+    Int -> [Clause (T12 (Quux Chint Char) (Positional Chint))]
+snakeClauses as bs k = validDiagonal ++
   zeroOutside ('D',k) outside ++
-  productsInside (makeGensym 'P') as bs ('D',k) inside
+  productsInside (makeGensym 0 'P') as bs ('D',k) inside
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) (biDiagonal k)
     (inside, outside) = snakeInsideOut k
 
 
-bisectClauses :: [Clause (T12 (Quux Chint Char) (Positional Chint))]
-bisectClauses = validDiagonal ++
-  productsInsideBisect (makeGensym 'P') as bs ('B',0) [0..symN]
+bisectClauses :: [Quux Chint Char] -> [Quux Chint Char] ->
+    [Clause (T12 (Quux Chint Char) (Positional Chint))]
+bisectClauses as bs = validDiagonal ++
+  productsInsideBisect (makeGensym 0 'P') as bs ('B',0) [0..symN]
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) bisectional
 
+t1 = map Number $ makeNumber 't' (2 * symN + 4) -- equal length for t1 and t2 
+t2 = makeNumber ('t',2) (2 * symN + 4)
 
-c1 = makeNumber ('c',1) (2 * symN + 2)
-c2 = makeNumber ('c',2) (2 * symN + 2)
-c3 = makeNumber ('c',3) (2 * symN + 2)
-tt = makeNumber ('t',0) (2 * symN + 2)
+z0 = makeNumber ('z',0) (2 * symN + 5)
 
-u1 = makeNumber ('u',1) (2 * symN + 3)
-u2 = makeNumber ('u',2) (2 * symN + 3)
+as' = map Number $ makeNumber 'a' (symN + 1)
+bs' = map Number $ makeNumber 'b' (symN + 1)
+cs' = makeNumber ('c',0) (2 * symN + 4)
 
-z0 = makeNumber ('z',0) (2 * symN + 4)
+test = multiplyNumbers 'q' 'G' as' as' cs' ++
+  concatMap (formulaToClauses . isValidT1) (concat [as',as',t1]) ++
+  concatMap (formulaToClauses . isValidT2) (concat [cs',t2,z0]) ++
+  addNumbers (makeGensym 0 'T') cs' t2 z0 ++
+  formulaToClauses (equivalentNumbersT12 t1 t2) ++
+  integerEqualsNumberT1 (-2000000^2) t1 ++ 
+  integerEqualsNumberT2 0 z0
 
-test = concat (map snakeClauses [0..(halfN-1)]) ++
-  bisectClauses ++
-  concatMap (formulaToClauses . isValidT1) (as ++ bs) ++
-  concatMap (formulaToClauses . isValidT2)
-      (concat [c1,c2,c3,u1,u2,z0,tt]) ++
-  addNumbers (makeGensym 'G') (biDiagonal 0) (biDiagonal 1) c1 ++
-  addNumbers (makeGensym 'H') (biDiagonal 2) (biDiagonal 3) c2 ++
-  addNumbers (makeGensym 'I') (biDiagonal 4) bisectional c3 ++
-  addNumbers (makeGensym 'U') c1 c2 u1 ++
-  addNumbers (makeGensym 'V') c3 tt u2 ++
-  addNumbers (makeGensym 'W') u1 u2 z0 ++
-  integerEqualsNumberT2 (-51683 * 67211) tt ++
-  integerEqualsNumberT2 0 z0  
-  
+-- large enough to avoid overlapping gensyms 
+offset = 1000
+
+multiplyNumbers :: Char -> Char ->
+    [Quux Chint Char] -> [Quux Chint Char] -> [Positional Chint] ->
+    [Clause (T12 (Quux Chint Char) (Positional Chint))]
+multiplyNumbers g gg as bs cs = let
+  c1 = makeNumber (g,1) (2 * symN + 2)
+  c2 = makeNumber (g,2) (2 * symN + 2)
+  c3 = makeNumber (g,3) (2 * symN + 2)
+  c4 = makeNumber (g,4) (2 * symN + 2)
+  u1 = makeNumber (g,5) (2 * symN + 3)
+  u2 = makeNumber (g,6) (2 * symN + 3)
+  in
+  concat (map (snakeClauses as bs) [0..(div symN 2 - 1)]) ++
+  bisectClauses as bs ++
+  concatMap (formulaToClauses . isValidT2) (concat [c1,c2,c3,c4,u1,u2]) ++
+  addNumbers (makeGensym offset     gg) (biDiagonal 0) (biDiagonal 1) c1 ++
+  addNumbers (makeGensym (2*offset) gg) (biDiagonal 2) (biDiagonal 3) c2 ++
+  addNumbers (makeGensym (3*offset) gg) (biDiagonal 4) (biDiagonal 5) c3 ++
+  addNumbers (makeGensym (4*offset) gg) (biDiagonal 6) bisectional    c4 ++
+  addNumbers (makeGensym (5*offset) gg) c1 c2 u1 ++
+  addNumbers (makeGensym (6*offset) gg) c3 c4 u2 ++
+  addNumbers (makeGensym (7*offset) gg) u1 u2 cs
+
 
 verifiedInput :: Int -> Int -> Int
 verifiedInput lenX lenY = if lenX == lenY && lenX == 2 * symN

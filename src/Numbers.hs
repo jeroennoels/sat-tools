@@ -17,6 +17,9 @@ idPositional (Positional i _) = i
 makeNumber :: i -> Int -> [Positional i]
 makeNumber i n = map (Positional i) [0..(n-1)]
 
+equivalentNumbersT12 :: (IdentifyT1 i1 j, IdentifyT2 i2 j) =>
+    [i1] -> [i2] -> Formula j
+equivalentNumbersT12 as bs = conjunction $ zipWith equivalentT12 as bs
 
 integerEqualsNumberT1 :: (Ord i1, Ord i2) =>
     Integer -> [i1] -> [Clause (T12 i1 i2)]
