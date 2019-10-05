@@ -107,29 +107,29 @@ type Chint = (Char, Int)
 makeGensym :: Int -> Char -> Int -> Quux Chint a
 makeGensym k c n = GensymId (c, k+n)
 
-biDiagonal :: Int -> [Positional Chint]
-biDiagonal k = makeNumber ('D',k) (2 * symN + 1)
+biDiagonal :: Char -> Int -> [Positional Chint]
+biDiagonal g k = makeNumber (g,k) (2 * symN + 1)
 
-bisectional :: [Positional Chint]
-bisectional = makeNumber ('B',0) (2 * symN + 1)
+bisectional :: Char -> [Positional Chint]
+bisectional g = makeNumber (g,-1) (2 * symN + 1)
 
 
-snakeClauses :: [Quux Chint Char] -> [Quux Chint Char] ->
+snakeClauses :: Char -> [Quux Chint Char] -> [Quux Chint Char] ->
     Int -> [Clause (T12 (Quux Chint Char) (Positional Chint))]
-snakeClauses as bs k = validDiagonal ++
-  zeroOutside ('D',k) outside ++
-  productsInside (makeGensym 0 'P') as bs ('D',k) inside
+snakeClauses g as bs k = validDiagonal ++
+  zeroOutside (g,k) outside ++
+  productsInside (makeGensym 0 'P') as bs (g,k) inside
   where
-    validDiagonal = concatMap (formulaToClauses . isValidT2) (biDiagonal k)
+    validDiagonal = concatMap (formulaToClauses . isValidT2) (biDiagonal g k)
     (inside, outside) = snakeInsideOut k
 
 
-bisectClauses :: [Quux Chint Char] -> [Quux Chint Char] ->
+bisectClauses :: Char -> [Quux Chint Char] -> [Quux Chint Char] ->
     [Clause (T12 (Quux Chint Char) (Positional Chint))]
-bisectClauses as bs = validDiagonal ++
-  productsInsideBisect (makeGensym 0 'P') as bs ('B',0) [0..symN]
+bisectClauses g as bs = validDiagonal ++
+  productsInsideBisect (makeGensym 0 'P') as bs (g,-1) [0..symN]
   where
-    validDiagonal = concatMap (formulaToClauses . isValidT2) bisectional
+    validDiagonal = concatMap (formulaToClauses . isValidT2) (bisectional g)
 
 t1 = map Number $ makeNumber 't' (2 * symN + 4) -- equal length for t1 and t2 
 t2 = makeNumber ('t',2) (2 * symN + 4)
@@ -161,14 +161,15 @@ multiplyNumbers g gg as bs cs = let
   c4 = makeNumber (g,4) (2 * symN + 2)
   u1 = makeNumber (g,5) (2 * symN + 3)
   u2 = makeNumber (g,6) (2 * symN + 3)
+  d = 'D'
   in
-  concat (map (snakeClauses as bs) [0..(div symN 2 - 1)]) ++
-  bisectClauses as bs ++
+  concat (map (snakeClauses d as bs) [0..(div symN 2 - 1)]) ++
+  bisectClauses d as bs ++
   concatMap (formulaToClauses . isValidT2) (concat [c1,c2,c3,c4,u1,u2]) ++
-  addNumbers (makeGensym offset     gg) (biDiagonal 0) (biDiagonal 1) c1 ++
-  addNumbers (makeGensym (2*offset) gg) (biDiagonal 2) (biDiagonal 3) c2 ++
-  addNumbers (makeGensym (3*offset) gg) (biDiagonal 4) (biDiagonal 5) c3 ++
-  addNumbers (makeGensym (4*offset) gg) (biDiagonal 6) bisectional    c4 ++
+  addNumbers (makeGensym offset     gg) (biDiagonal d 0) (biDiagonal d 1) c1 ++
+  addNumbers (makeGensym (2*offset) gg) (biDiagonal d 2) (biDiagonal d 3) c2 ++
+  addNumbers (makeGensym (3*offset) gg) (biDiagonal d 4) (biDiagonal d 5) c3 ++
+  addNumbers (makeGensym (4*offset) gg) (biDiagonal d 6) (bisectional d)  c4 ++
   addNumbers (makeGensym (5*offset) gg) c1 c2 u1 ++
   addNumbers (makeGensym (6*offset) gg) c3 c4 u2 ++
   addNumbers (makeGensym (7*offset) gg) u1 u2 cs
