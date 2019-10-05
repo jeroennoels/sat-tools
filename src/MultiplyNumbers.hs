@@ -140,7 +140,7 @@ as' = map Number $ makeNumber 'a' (symN + 1)
 bs' = map Number $ makeNumber 'b' (symN + 1)
 cs' = makeNumber ('c',0) (2 * symN + 4)
 
-test = multiplyNumbers 'q' 'G' as' as' cs' ++
+test = multiplyNumbers 'D' 'G' 'q' as' as' cs' ++
   concatMap (formulaToClauses . isValidT1) (concat [as',as',t1]) ++
   concatMap (formulaToClauses . isValidT2) (concat [cs',t2,z0]) ++
   addNumbers (makeGensym 0 'T') cs' t2 z0 ++
@@ -151,25 +151,24 @@ test = multiplyNumbers 'q' 'G' as' as' cs' ++
 -- large enough to avoid overlapping gensyms 
 offset = 1000
 
-multiplyNumbers :: Char -> Char ->
+multiplyNumbers :: Char -> Char -> Char ->
     [Quux Chint Char] -> [Quux Chint Char] -> [Positional Chint] ->
     [Clause (T12 (Quux Chint Char) (Positional Chint))]
-multiplyNumbers g gg as bs cs = let
-  c1 = makeNumber (g,1) (2 * symN + 2)
-  c2 = makeNumber (g,2) (2 * symN + 2)
-  c3 = makeNumber (g,3) (2 * symN + 2)
-  c4 = makeNumber (g,4) (2 * symN + 2)
-  u1 = makeNumber (g,5) (2 * symN + 3)
-  u2 = makeNumber (g,6) (2 * symN + 3)
-  d = 'D'
+multiplyNumbers g gg ggg as bs cs = let
+  c1 = makeNumber (ggg,1) (2 * symN + 2)
+  c2 = makeNumber (ggg,2) (2 * symN + 2)
+  c3 = makeNumber (ggg,3) (2 * symN + 2)
+  c4 = makeNumber (ggg,4) (2 * symN + 2)
+  u1 = makeNumber (ggg,5) (2 * symN + 3)
+  u2 = makeNumber (ggg,6) (2 * symN + 3)
   in
-  concat (map (snakeClauses d as bs) [0..(div symN 2 - 1)]) ++
-  bisectClauses d as bs ++
+  concat (map (snakeClauses g as bs) [0..(div symN 2 - 1)]) ++
+  bisectClauses g as bs ++
   concatMap (formulaToClauses . isValidT2) (concat [c1,c2,c3,c4,u1,u2]) ++
-  addNumbers (makeGensym offset     gg) (biDiagonal d 0) (biDiagonal d 1) c1 ++
-  addNumbers (makeGensym (2*offset) gg) (biDiagonal d 2) (biDiagonal d 3) c2 ++
-  addNumbers (makeGensym (3*offset) gg) (biDiagonal d 4) (biDiagonal d 5) c3 ++
-  addNumbers (makeGensym (4*offset) gg) (biDiagonal d 6) (bisectional d)  c4 ++
+  addNumbers (makeGensym offset     gg) (biDiagonal g 0) (biDiagonal g 1) c1 ++
+  addNumbers (makeGensym (2*offset) gg) (biDiagonal g 2) (biDiagonal g 3) c2 ++
+  addNumbers (makeGensym (3*offset) gg) (biDiagonal g 4) (biDiagonal g 5) c3 ++
+  addNumbers (makeGensym (4*offset) gg) (biDiagonal g 6) (bisectional g)  c4 ++
   addNumbers (makeGensym (5*offset) gg) c1 c2 u1 ++
   addNumbers (makeGensym (6*offset) gg) c3 c4 u2 ++
   addNumbers (makeGensym (7*offset) gg) u1 u2 cs
