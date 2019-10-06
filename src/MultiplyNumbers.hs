@@ -118,7 +118,7 @@ snakeClauses :: Char -> [Quux Chint Char] -> [Quux Chint Char] ->
     Int -> [Clause (T12 (Quux Chint Char) (Positional Chint))]
 snakeClauses g as bs k = validDiagonal ++
   zeroOutside (g,k) outside ++
-  productsInside (makeGensym 0 'P') as bs (g,k) inside
+  productsInside (makeGensym 0 g) as bs (g,k) inside
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) (biDiagonal g k)
     (inside, outside) = snakeInsideOut k
@@ -127,26 +127,30 @@ snakeClauses g as bs k = validDiagonal ++
 bisectClauses :: Char -> [Quux Chint Char] -> [Quux Chint Char] ->
     [Clause (T12 (Quux Chint Char) (Positional Chint))]
 bisectClauses g as bs = validDiagonal ++
-  productsInsideBisect (makeGensym 0 'P') as bs (g,-1) [0..symN]
+  productsInsideBisect (makeGensym 0 g) as bs (g,-1) [0..symN]
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) (bisectional g)
 
-t1 = map Number $ makeNumber 't' (2 * symN + 4) -- equal length for t1 and t2 
-t2 = makeNumber ('t',2) (2 * symN + 4)
-
-z0 = makeNumber ('z',0) (2 * symN + 5)
+t2 = makeNumber ('t',2) (2 * symN + 6)
 
 as' = map Number $ makeNumber 'a' (symN + 1)
-bs' = map Number $ makeNumber 'b' (symN + 1)
 cs' = makeNumber ('c',0) (2 * symN + 4)
+bs' = map Number $ makeNumber 'b' (symN + 1)
+ds' = makeNumber ('d',0) (2 * symN + 4)
+us' = map Number $ makeNumber 'u' (symN + 1)
+vs' = makeNumber ('v',0) (2 * symN + 5)
+es' = makeNumber ('e',0) (2 * symN + 5)
 
-test = multiplyNumbers 'D' 'G' 'q' as' as' cs' ++
-  concatMap (formulaToClauses . isValidT1) (concat [as',as',t1]) ++
-  concatMap (formulaToClauses . isValidT2) (concat [cs',t2,z0]) ++
-  addNumbers (makeGensym 0 'T') cs' t2 z0 ++
-  formulaToClauses (equivalentNumbersT12 t1 t2) ++
-  integerEqualsNumberT1 (-2000000^2) t1 ++ 
-  integerEqualsNumberT2 0 z0
+test =
+  multiplyNumbers 'D' 'G' 'p' as' as' cs' ++
+  multiplyNumbers 'E' 'H' 'q' bs' bs' ds' ++
+  formulaToClauses (zeroT2 (last vs')) ++
+  multiplyNumbers 'F' 'I' 'r' us' us' (init vs') ++
+  concatMap (formulaToClauses . isValidT1) (concat [as',bs',us']) ++
+  concatMap (formulaToClauses . isValidT2) (concat [cs',ds',vs',es',t2]) ++
+  addNumbers (makeGensym 0 'T') cs' ds' es' ++
+  addNumbers (makeGensym 0 'U') es' vs' t2 ++
+  integerEqualsNumberT2 (123456^2 + 234567^2 + 345678^2) t2
 
 -- large enough to avoid overlapping gensyms 
 offset = 1000
