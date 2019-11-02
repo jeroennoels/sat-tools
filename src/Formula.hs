@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 module Formula (
   Formula (..), IntLabel (..),
-  identifier, conjunction, variables,
+  identifier, conjunction, disjunction, variables,
   elimImplication, moveNotDown,
   toCNF) where
 
@@ -26,6 +26,9 @@ identifier (Var i) = i
 
 conjunction :: [Formula i] -> Formula i
 conjunction = foldl1 And
+
+disjunction :: [Formula i] -> Formula i
+disjunction = foldl1 Or
 
 -- In many examples we simply use Int to label the variables.
 newtype IntLabel = IntLabel Int deriving (Eq, Ord)
