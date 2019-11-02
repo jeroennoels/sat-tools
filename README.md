@@ -1,1 +1,5 @@
-This is an attempt to reduce non-linear integer arithmetic to boolean satisfiability.
+This is an experimental toolbox to reduce various problems to boolean satisfiability, such as
+
+* Linear and non-linear integer arithmetic
+
+* Graph coloring
