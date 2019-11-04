@@ -39,4 +39,4 @@ graph :: [(Int, Int)]
 graph = completeGraph 4
 
 completeGraph :: Int -> [(Int, Int)]
-completeGraph n = [(x,y) | x <- [1..n], y <- [1..n], x < y
+completeGraph n = [(x,y) | x <- [1..n], y <- [1..n], x < y]
