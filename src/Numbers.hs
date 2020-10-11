@@ -41,3 +41,8 @@ parseForT1 x = let
   (q,r) = quotRem x 3
   (v,w) = if r <= 1 then (q,r) else (q+1, r-3)
   in fromIntegral w : parseForT1 v
+
+
+nonZeroNumberT1 :: (Ord i1, Ord i2) => [i1] -> [Clause (T12 i1 i2)]
+nonZeroNumberT1 as = formulaToClauses $ disjunction $
+  map Not (zipWith intEqualsT1 (repeat 0) as)

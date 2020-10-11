@@ -131,26 +131,39 @@ bisectClauses g as bs = validDiagonal ++
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) (bisectional g)
 
-t2 = makeNumber ('t',2) (2 * symN + 6)
-
 as' = map Number $ makeNumber 'a' (symN + 1)
-cs' = makeNumber ('c',0) (2 * symN + 4)
+aas = makeNumber ('x',0) (2 * symN + 4)
 bs' = map Number $ makeNumber 'b' (symN + 1)
-ds' = makeNumber ('d',0) (2 * symN + 4)
-us' = map Number $ makeNumber 'u' (symN + 1)
-vs' = makeNumber ('v',0) (2 * symN + 5)
-es' = makeNumber ('e',0) (2 * symN + 5)
+bbs = makeNumber ('y',0) (2 * symN + 4)
+cs' = map Number $ makeNumber 'c' (symN + 1)
+ccs = makeNumber ('z',0) (2 * symN + 4)
 
+ds' = map Number $ makeNumber 'd' (symN + 1)
+dds = makeNumber ('u',0) (2 * symN + 5)
+es' = map Number $ makeNumber 'e' (symN + 1)
+ees = makeNumber ('v',0) (2 * symN + 5)
+fs' = map Number $ makeNumber 'f' (symN + 1)
+ffs = makeNumber ('w',0) (2 * symN + 5)
+
+ 
 test =
-  multiplyNumbers 'D' 'G' 'p' as' as' cs' ++
-  multiplyNumbers 'E' 'H' 'q' bs' bs' ds' ++
-  formulaToClauses (zeroT2 (last vs')) ++
-  multiplyNumbers 'F' 'I' 'r' us' us' (init vs') ++
-  concatMap (formulaToClauses . isValidT1) (concat [as',bs',us']) ++
-  concatMap (formulaToClauses . isValidT2) (concat [cs',ds',vs',es',t2]) ++
-  addNumbers (makeGensym 0 'T') cs' ds' es' ++
-  addNumbers (makeGensym 0 'U') es' vs' t2 ++
-  integerEqualsNumberT2 (123456^2 + 234567^2 + 345678^2) t2
+  concatMap (formulaToClauses . isValidT1) (concat [as',bs',cs',ds',es',fs']) ++
+  concatMap (formulaToClauses . isValidT2) (concat [aas,bbs,ccs,dds,ees,ffs]) ++
+  nonZeroNumberT1 as' ++
+  nonZeroNumberT1 bs' ++
+  nonZeroNumberT1 cs' ++
+  formulaToClauses (zeroT2 (last dds)) ++
+  formulaToClauses (zeroT2 (last ees)) ++
+  formulaToClauses (zeroT2 (last ffs)) ++
+  multiplyNumbers 'D' 'K' 'k' as' as' aas ++
+  multiplyNumbers 'E' 'L' 'l' bs' bs' bbs ++
+  multiplyNumbers 'F' 'M' 'm' cs' cs' ccs ++
+  multiplyNumbers 'G' 'N' 'n' ds' ds' (init dds) ++
+  multiplyNumbers 'H' 'O' 'o' es' es' (init ees) ++
+  multiplyNumbers 'I' 'P' 'p' fs' fs' (init ffs) ++
+  addNumbers (makeGensym 0 'R') aas bbs dds ++
+  addNumbers (makeGensym 0 'S') aas ccs ees ++
+  addNumbers (makeGensym 0 'T') bbs ccs ffs
 
 -- large enough to avoid overlapping gensyms 
 offset = 1000
