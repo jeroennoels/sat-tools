@@ -16,7 +16,7 @@ import Data.Maybe
 
 -- must be even
 symN :: Int
-symN = 14
+symN = 6
 
 shift :: (Int,Int) -> Int -> (Int,Int)
 shift (a,b) c = (a+c, b+c)
@@ -131,40 +131,18 @@ bisectClauses g as bs = validDiagonal ++
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) (bisectional g)
 
-as' = map Number $ makeNumber 'a' (symN + 1)
-aas = makeNumber ('x',0) (2 * symN + 4)
-bs' = map Number $ makeNumber 'b' (symN + 1)
-bbs = makeNumber ('y',0) (2 * symN + 4)
-cs' = map Number $ makeNumber 'c' (symN + 1)
-ccs = makeNumber ('z',0) (2 * symN + 4)
-
-ds' = map Number $ makeNumber 'd' (symN + 1)
-dds = makeNumber ('u',0) (2 * symN + 5)
-es' = map Number $ makeNumber 'e' (symN + 1)
-ees = makeNumber ('v',0) (2 * symN + 5)
-fs' = map Number $ makeNumber 'f' (symN + 1)
-ffs = makeNumber ('w',0) (2 * symN + 5)
-
  
-test =
-  concatMap (formulaToClauses . isValidT1) (concat [as',bs',cs',ds',es',fs']) ++
-  concatMap (formulaToClauses . isValidT2) (concat [aas,bbs,ccs,dds,ees,ffs]) ++
-  nonZeroNumberT1 as' ++
-  nonZeroNumberT1 bs' ++
-  nonZeroNumberT1 cs' ++
-  formulaToClauses (zeroT2 (last dds)) ++
-  formulaToClauses (zeroT2 (last ees)) ++
-  formulaToClauses (zeroT2 (last ffs)) ++
-  multiplyNumbers 'D' 'K' 'k' as' as' aas ++
-  multiplyNumbers 'E' 'L' 'l' bs' bs' bbs ++
-  multiplyNumbers 'F' 'M' 'm' cs' cs' ccs ++
-  multiplyNumbers 'G' 'N' 'n' ds' ds' (init dds) ++
-  multiplyNumbers 'H' 'O' 'o' es' es' (init ees) ++
-  multiplyNumbers 'I' 'P' 'p' fs' fs' (init ffs) ++
-  addNumbers (makeGensym 0 'R') aas bbs dds ++
-  addNumbers (makeGensym 0 'S') aas ccs ees ++
-  addNumbers (makeGensym 0 'T') bbs ccs ffs
-
+test = let
+  as = map Number $ makeNumber 'a' (symN + 1)
+  bs = map Number $ makeNumber 'b' (symN + 1)
+  cs = makeNumber ('c',0) (2 * symN + 3)
+  in
+  concatMap (formulaToClauses . isValidT1) (concat [as,bs]) ++
+  concatMap (formulaToClauses . isValidT2) (concat [cs]) ++
+  multiplyNumbers 'A' 'B' 'C' as bs cs ++
+  integerEqualsNumberT2 (1089*1091) cs
+  
+  
 -- large enough to avoid overlapping gensyms 
 offset = 1000
 
@@ -174,21 +152,13 @@ multiplyNumbers :: Char -> Char -> Char ->
 multiplyNumbers g gg ggg as bs cs = let
   c1 = makeNumber (ggg,1) (2 * symN + 2)
   c2 = makeNumber (ggg,2) (2 * symN + 2)
-  c3 = makeNumber (ggg,3) (2 * symN + 2)
-  c4 = makeNumber (ggg,4) (2 * symN + 2)
-  u1 = makeNumber (ggg,5) (2 * symN + 3)
-  u2 = makeNumber (ggg,6) (2 * symN + 3)
   in
   concat (map (snakeClauses g as bs) [0..(div symN 2 - 1)]) ++
   bisectClauses g as bs ++
-  concatMap (formulaToClauses . isValidT2) (concat [c1,c2,c3,c4,u1,u2]) ++
+  concatMap (formulaToClauses . isValidT2) (concat [c1,c2]) ++
   addNumbers (makeGensym offset     gg) (biDiagonal g 0) (biDiagonal g 1) c1 ++
-  addNumbers (makeGensym (2*offset) gg) (biDiagonal g 2) (biDiagonal g 3) c2 ++
-  addNumbers (makeGensym (3*offset) gg) (biDiagonal g 4) (biDiagonal g 5) c3 ++
-  addNumbers (makeGensym (4*offset) gg) (biDiagonal g 6) (bisectional g)  c4 ++
-  addNumbers (makeGensym (5*offset) gg) c1 c2 u1 ++
-  addNumbers (makeGensym (6*offset) gg) c3 c4 u2 ++
-  addNumbers (makeGensym (7*offset) gg) u1 u2 cs
+  addNumbers (makeGensym (2*offset) gg) (biDiagonal g 2) (bisectional g)  c2 ++
+  addNumbers (makeGensym (3*offset) gg) c1 c2 cs
 
 
 verifiedInput :: Int -> Int -> Int
