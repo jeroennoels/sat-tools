@@ -84,7 +84,7 @@ readLinesFromFile :: FilePath -> IO [String]
 readLinesFromFile file = lines `fmap` readFile file
 
 -- loadMapping :: IO [(Int, VertexColorBit)]
-loadMapping :: IO [(Int, (T12 (Quux Chint Char) (Positional Chint)))]
+loadMapping :: IO [(Int, (T12 (Quux Chint String) (Positional Chint)))]
 loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf"
 
 loadVariables :: IO [Int]
@@ -105,3 +105,5 @@ run ["p"] = dimacsOutput test -- (graphColoring graph)
 run ["i"] = loadMapping >>= print
 run ["s"] = loadVariables >>= print
 run ["m"] = loadModel >>= print
+run ["lm"] = liftA2 getModel loadVariables loadMapping >>= print
+

@@ -102,20 +102,20 @@ getNumber :: Quux a b -> Maybe (Positional b)
 getNumber (Number p) = Just p
 getNumber _ = Nothing
 
-type Chint = (Char, Int)
+type Chint = (String, Int)
 
-makeGensym :: Int -> Char -> Int -> Quux Chint a
+makeGensym :: Int -> String -> Int -> Quux Chint a
 makeGensym k c n = GensymId (c, k+n)
 
-biDiagonal :: Char -> Int -> [Positional Chint]
+biDiagonal :: String -> Int -> [Positional Chint]
 biDiagonal g k = makeNumber (g,k) (2 * symN + 1)
 
-bisectional :: Char -> [Positional Chint]
+bisectional :: String -> [Positional Chint]
 bisectional g = makeNumber (g,-1) (2 * symN + 1)
 
 
-snakeClauses :: Char -> [Quux Chint Char] -> [Quux Chint Char] ->
-    Int -> [Clause (T12 (Quux Chint Char) (Positional Chint))]
+snakeClauses :: String -> [Quux Chint String] -> [Quux Chint String] ->
+    Int -> [Clause (T12 (Quux Chint String) (Positional Chint))]
 snakeClauses g as bs k = validDiagonal ++
   zeroOutside (g,k) outside ++
   productsInside (makeGensym 0 g) as bs (g,k) inside
@@ -124,31 +124,20 @@ snakeClauses g as bs k = validDiagonal ++
     (inside, outside) = snakeInsideOut k
 
 
-bisectClauses :: Char -> [Quux Chint Char] -> [Quux Chint Char] ->
-    [Clause (T12 (Quux Chint Char) (Positional Chint))]
+bisectClauses :: String -> [Quux Chint String] -> [Quux Chint String] ->
+    [Clause (T12 (Quux Chint String) (Positional Chint))]
 bisectClauses g as bs = validDiagonal ++
   productsInsideBisect (makeGensym 0 g) as bs (g,-1) [0..symN]
   where
     validDiagonal = concatMap (formulaToClauses . isValidT2) (bisectional g)
 
- 
-test = let
-  as = map Number $ makeNumber 'a' (symN + 1)
-  bs = map Number $ makeNumber 'b' (symN + 1)
-  cs = makeNumber ('c',0) (2 * symN + 3)
-  in
-  concatMap (formulaToClauses . isValidT1) (concat [as,bs]) ++
-  concatMap (formulaToClauses . isValidT2) (concat [cs]) ++
-  multiplyNumbers 'A' 'B' 'C' as bs cs ++
-  integerEqualsNumberT2 (1089*1091) cs
-  
   
 -- large enough to avoid overlapping gensyms 
 offset = 1000
 
-multiplyNumbers :: Char -> Char -> Char ->
-    [Quux Chint Char] -> [Quux Chint Char] -> [Positional Chint] ->
-    [Clause (T12 (Quux Chint Char) (Positional Chint))]
+multiplyNumbers :: String -> String -> String ->
+    [Quux Chint String] -> [Quux Chint String] -> [Positional Chint] ->
+    [Clause (T12 (Quux Chint String) (Positional Chint))]
 multiplyNumbers g gg ggg as bs cs = let
   c1 = makeNumber (ggg,1) (2 * symN + 2)
   c2 = makeNumber (ggg,2) (2 * symN + 2)
@@ -160,7 +149,55 @@ multiplyNumbers g gg ggg as bs cs = let
   addNumbers (makeGensym (2*offset) gg) (biDiagonal g 2) (bisectional g)  c2 ++
   addNumbers (makeGensym (3*offset) gg) c1 c2 cs
 
-
 verifiedInput :: Int -> Int -> Int
 verifiedInput lenX lenY = if lenX == lenY && lenX == 2 * symN
   then lenX else error "verifiedInput"
+
+
+test_factoring = let
+  as = map Number $ makeNumber "a" (symN + 1)
+  bs = map Number $ makeNumber "b" (symN + 1)
+  cs = makeNumber ("c",0) (2 * symN + 3)
+  in
+  concatMap (formulaToClauses . isValidT1) (concat [as,bs]) ++
+  concatMap (formulaToClauses . isValidT2) (concat [cs]) ++
+  multiplyNumbers "A" "B" "C" as bs cs ++
+  integerEqualsNumberT2 (1089*1091) cs
+
+
+type ClauseList = [Clause (T12 (Quux Chint String) (Positional Chint))]
+  
+data Scalar = Scalar String [Quux Chint String]
+  deriving (Eq, Ord, Read, Show)
+
+makeScalar :: String -> (Scalar, ClauseList)
+makeScalar label = (Scalar label as, clauses)
+  where
+    as = map Number $ makeNumber label (symN + 1)
+    clauses = concatMap (formulaToClauses . isValidT1) as
+
+
+data Vector = Vector Scalar Scalar
+  deriving (Eq, Ord, Read, Show)
+
+
+inner :: String -> Vector -> Vector -> ([Positional Chint], ClauseList) 
+inner label (Vector (Scalar a as) (Scalar b bs)) (Vector (Scalar c cs) (Scalar d ds)) = let
+  ac = a ++ c
+  bd = b ++ d
+  xs = makeNumber (ac, 0) (2 * symN + 3)
+  ys = makeNumber (bd, 0) (2 * symN + 3)
+  zs = makeNumber (label, 0) (2 * symN + 4)
+  clauses = concatMap (formulaToClauses . isValidT2) (concat [xs,ys,zs]) ++
+      multiplyNumbers ('A':ac) ('B':ac) ('C':ac) as cs xs ++
+      multiplyNumbers ('A':bd) ('B':bd) ('C':bd) bs ds ys ++
+      addNumbers (makeGensym 0 ('G':label)) xs ys zs 
+  in (zs, clauses)
+
+test :: ClauseList
+test = let
+  [a,b,c,d] = map makeScalar ["a", "b", "c", "d"]
+  (zs, clauses) = inner "inn" (Vector (fst a) (fst b)) (Vector (fst c) (fst d))
+  in
+  snd a ++ snd b ++ snd c ++ snd d ++ clauses ++
+  integerEqualsNumberT2 (127 * 748 + 451 * 649) zs
