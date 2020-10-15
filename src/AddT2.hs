@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module AddT2 (addDigitsT2) where
+module AddT2 (addDigitsT2, subtractDigitsT2) where
 
 import Formula
 import Clauses
@@ -40,6 +40,32 @@ template = formulaToClauses $ makeFormula 'a' 'b' 'x' 'y'
 addDigitsT2 :: forall i1 i2 j . (IdentifyT1 i1 j, IdentifyT2 i2 j) =>
     i2 -> i2 -> i1 -> i1 -> [Clause j]
 addDigitsT2 a b x y = map (fmap substitution) template
+  where
+    substitution :: CharId -> j
+    substitution = identifier . abstraction [('x',x),('y',y)] [('a',a),('b',b)]
+
+
+mapConditionally :: (a -> Bool) -> (a -> b) -> (a -> b) -> [a] -> [b]
+mapConditionally pred f g (a:as) =
+  let h = if pred a then f else g
+  in h a : mapConditionally pred f g as
+mapConditionally _ _ _ [] = []
+
+matchT2 :: Char -> Literal CharId -> Bool
+matchT2 c (Positive (T2 i _)) = i == c
+matchT2 c (Negative (T2 i _)) = i == c
+matchT2 _ _ = False
+
+flipB' :: [Literal CharId] -> [Literal CharId]
+flipB' = mapConditionally (matchT2 'b') (fmap flipPosNeg) id
+
+flipB :: Clause CharId -> Clause CharId
+flipB = Clause . flipB' . literals
+
+
+subtractDigitsT2 :: forall i1 i2 j . (IdentifyT1 i1 j, IdentifyT2 i2 j) =>
+    i2 -> i2 -> i1 -> i1 -> [Clause j]
+subtractDigitsT2 a b x y = map (fmap substitution) (map flipB template)
   where
     substitution :: CharId -> j
     substitution = identifier . abstraction [('x',x),('y',y)] [('a',a),('b',b)]

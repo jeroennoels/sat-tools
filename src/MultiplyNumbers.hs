@@ -164,24 +164,23 @@ test_factoring = let
   multiplyNumbers "A" "B" "C" as bs cs ++
   integerEqualsNumberT2 (1089*1091) cs
 
+type Label = String
 
-type ClauseList = [Clause (T12 (Quux Chint String) (Positional Chint))]
+type ClauseList = [Clause (T12 (Quux Chint Label) (Positional Chint))]
   
-data Scalar = Scalar String [Quux Chint String]
+data Scalar = Scalar Label [Quux Chint String]
   deriving (Eq, Ord, Read, Show)
 
-makeScalar :: String -> (Scalar, ClauseList)
+makeScalar :: Label -> (Scalar, ClauseList)
 makeScalar label = (Scalar label as, clauses)
   where
     as = map Number $ makeNumber label (symN + 1)
     clauses = concatMap (formulaToClauses . isValidT1) as
 
-
 data Vector = Vector Scalar Scalar
   deriving (Eq, Ord, Read, Show)
 
-
-inner :: String -> Vector -> Vector -> ([Positional Chint], ClauseList) 
+inner :: Label -> Vector -> Vector -> ([Positional Chint], ClauseList) 
 inner label (Vector (Scalar a as) (Scalar b bs)) (Vector (Scalar c cs) (Scalar d ds)) = let
   ac = a ++ c
   bd = b ++ d
@@ -194,10 +193,59 @@ inner label (Vector (Scalar a as) (Scalar b bs)) (Vector (Scalar c cs) (Scalar d
       addNumbers (makeGensym 0 ('G':label)) xs ys zs 
   in (zs, clauses)
 
+
+data Matrix e = Matrix e e e e 
+  deriving (Eq, Ord, Read, Show)
+
+row :: Int -> Matrix Scalar -> Vector
+row 1 (Matrix a b _ _) = Vector a b
+row 2 (Matrix _ _ c d) = Vector c d
+
+col :: Int -> Matrix Scalar -> Vector
+col 1 (Matrix a _ c _) = Vector a c
+col 2 (Matrix _ b _ d) = Vector b d
+
+matrixProduct :: Label -> Matrix Scalar -> Matrix Scalar ->
+  (Matrix (Label, [Positional Chint]), ClauseList)
+matrixProduct label x y = let
+  label_11 = label ++ "-11"
+  label_12 = label ++ "-12"
+  label_21 = label ++ "-21"
+  label_22 = label ++ "-22"
+  (zs_11, clauses_11) = inner label_11 (row 1 x) (col 1 y)
+  (zs_12, clauses_12) = inner label_12 (row 1 x) (col 2 y)
+  (zs_21, clauses_21) = inner label_21 (row 2 x) (col 1 y)
+  (zs_22, clauses_22) = inner label_22 (row 2 x) (col 2 y)
+  in
+  (Matrix (label_11, zs_11) (label_12, zs_12) (label_21, zs_21) (label_22, zs_22),
+   clauses_11 ++ clauses_12 ++ clauses_21 ++ clauses_22)
+
+
+matrixEqual :: Matrix (Label, [Positional Chint]) -> Matrix Integer -> ClauseList
+matrixEqual (Matrix (_,as) (_,bs) (_,cs) (_,ds)) (Matrix a b c d) = let
+  zero = makeNumber ("zero", 0) (2 * symN + 5)
+  nas = makeNumber ("nas", 0) (2 * symN + 4)
+  nbs = makeNumber ("nbs", 0) (2 * symN + 4)
+  ncs = makeNumber ("ncs", 0) (2 * symN + 4)
+  nds = makeNumber ("nds", 0) (2 * symN + 4)
+  in
+  concatMap (formulaToClauses . isValidT2) (concat [zero,nas,nbs,ncs,nds]) ++
+  addNumbers (makeGensym 0 ("Ha")) as nas zero ++
+  addNumbers (makeGensym 0 ("Hb")) bs nbs zero ++
+  addNumbers (makeGensym 0 ("Hc")) cs ncs zero ++
+  addNumbers (makeGensym 0 ("Hd")) ds nds zero ++
+  integerEqualsNumberT2 0 zero ++
+  integerEqualsNumberT2 (-a) nas ++
+  integerEqualsNumberT2 (-b) nbs ++ 
+  integerEqualsNumberT2 (-c) ncs ++
+  integerEqualsNumberT2 (-d) nds
+
+             
 test :: ClauseList
 test = let
   [a,b,c,d] = map makeScalar ["a", "b", "c", "d"]
-  (zs, clauses) = inner "inn" (Vector (fst a) (fst b)) (Vector (fst c) (fst d))
-  in
+  x = Matrix (fst a) (fst b) (fst c) (fst d)
+  (xx, clauses) = matrixProduct "mat" x x
+  in 
   snd a ++ snd b ++ snd c ++ snd d ++ clauses ++
-  integerEqualsNumberT2 (127 * 748 + 451 * 649) zs
+  matrixEqual xx (Matrix 20000 20000 20000 20000)

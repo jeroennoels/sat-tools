@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 module Clauses (
   Literal (..), Clause(..),
+  literals,
   distinctVariables, normalizeClauses,
   formulaToClauses) where
 
@@ -16,6 +17,9 @@ data Literal i = Positive i | Negative i
 
 newtype Clause i = Clause [Literal i]
   deriving (Eq, Ord, Functor, Show)
+
+literals :: Clause i -> [Literal i]
+literals (Clause lits) = lits
 
 var :: Literal i -> i
 var (Positive v) = v
