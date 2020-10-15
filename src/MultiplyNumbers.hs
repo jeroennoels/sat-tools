@@ -239,7 +239,7 @@ matrixProduct label x y = let
 zero :: ([Positional ([Char], Int)], ClauseList)
 zero = let
   zs = makeNumber ("zero", 0) (2 * symN + 5)
-  clauses = concatMap (formulaToClauses . isValidT2) zs ++ integerEqualsNumberT2 0 zs
+  clauses = concatMap formulaToClauses (map zeroT2 zs ++ map evenT2 zs)
   in (zs, clauses)
 
 
