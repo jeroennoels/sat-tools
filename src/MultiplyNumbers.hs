@@ -14,6 +14,11 @@ import Data.Tuple (swap)
 import Data.List (partition)
 import Data.Maybe
 
+-- This is all very ad hoc at the moment.  In some places, the number of digits
+-- is still hardwired in the implementation.
+-- We shall multiply two T1-represented numbers of (symN + 1) digits.
+-- The result will be a T2-represented number of (2 * symN + 3) digits. 
+
 -- must be even
 symN :: Int
 symN = 6
@@ -94,7 +99,7 @@ zeroOutside diagonalId pairs = concatMap forPair pairs
   where
     forPair (a,b) = formulaToClauses $ zeroT2 (Positional diagonalId (a+b))
 
-
+-- find a good name please
 data Quux a b = GensymId a | Number (Positional b)
   deriving (Eq, Ord, Read, Show)
 
@@ -102,6 +107,7 @@ getNumber :: Quux a b -> Maybe (Positional b)
 getNumber (Number p) = Just p
 getNumber _ = Nothing
 
+-- find a good name please
 type Chint = (String, Int)
 
 makeGensym :: Int -> String -> Int -> Quux Chint a
@@ -134,6 +140,12 @@ bisectClauses g as bs = validDiagonal ++
   
 -- large enough to avoid overlapping gensyms 
 offset = 1000
+
+
+-- This is all very ad hoc at the moment.  Here the number of digits is currently
+-- hardwired in the implementation: it only works for symN = 6.
+-- We multiply two T1-represented numbers of 7 digits.
+-- The result will be a T2-represented number of 15 digits.
 
 multiplyNumbers :: String -> String -> String ->
     [Quux Chint String] -> [Quux Chint String] -> [Positional Chint] ->
@@ -177,6 +189,7 @@ makeScalar label = (Scalar label as, clauses)
     as = map Number $ makeNumber label (symN + 1)
     clauses = concatMap (formulaToClauses . isValidT1) as
 
+-- For a first experiment we just hardcode types for 2 x 2 matrices.
 data Vector = Vector Scalar Scalar
   deriving (Eq, Ord, Read, Show)
 
@@ -193,6 +206,7 @@ inner label (Vector (Scalar a as) (Scalar b bs)) (Vector (Scalar c cs) (Scalar d
       addNumbers (makeGensym 0 ('G':label)) xs ys zs 
   in (zs, clauses)
 
+-- For a first experiment we just hardcode types for 2 x 2 matrices.
 
 data Matrix e = Matrix e e e e 
   deriving (Eq, Ord, Read, Show)
@@ -205,47 +219,63 @@ col :: Int -> Matrix Scalar -> Vector
 col 1 (Matrix a _ c _) = Vector a c
 col 2 (Matrix _ b _ d) = Vector b d
 
+
 matrixProduct :: Label -> Matrix Scalar -> Matrix Scalar ->
   (Matrix (Label, [Positional Chint]), ClauseList)
 matrixProduct label x y = let
-  label_11 = label ++ "-11"
-  label_12 = label ++ "-12"
-  label_21 = label ++ "-21"
-  label_22 = label ++ "-22"
-  (zs_11, clauses_11) = inner label_11 (row 1 x) (col 1 y)
-  (zs_12, clauses_12) = inner label_12 (row 1 x) (col 2 y)
-  (zs_21, clauses_21) = inner label_21 (row 2 x) (col 1 y)
-  (zs_22, clauses_22) = inner label_22 (row 2 x) (col 2 y)
+  lab_11 = label ++ "-11"
+  lab_12 = label ++ "-12"
+  lab_21 = label ++ "-21"
+  lab_22 = label ++ "-22"
+  (zs_11, clauses_11) = inner lab_11 (row 1 x) (col 1 y)
+  (zs_12, clauses_12) = inner lab_12 (row 1 x) (col 2 y)
+  (zs_21, clauses_21) = inner lab_21 (row 2 x) (col 1 y)
+  (zs_22, clauses_22) = inner lab_22 (row 2 x) (col 2 y)
   in
-  (Matrix (label_11, zs_11) (label_12, zs_12) (label_21, zs_21) (label_22, zs_22),
+  (Matrix (lab_11, zs_11) (lab_12, zs_12) (lab_21, zs_21) (lab_22, zs_22),
    clauses_11 ++ clauses_12 ++ clauses_21 ++ clauses_22)
 
 
-matrixEqual :: Matrix (Label, [Positional Chint]) -> Matrix Integer -> ClauseList
-matrixEqual (Matrix (_,as) (_,bs) (_,cs) (_,ds)) (Matrix a b c d) = let
-  zero = makeNumber ("zero", 0) (2 * symN + 5)
-  nas = makeNumber ("nas", 0) (2 * symN + 4)
-  nbs = makeNumber ("nbs", 0) (2 * symN + 4)
-  ncs = makeNumber ("ncs", 0) (2 * symN + 4)
-  nds = makeNumber ("nds", 0) (2 * symN + 4)
-  in
-  concatMap (formulaToClauses . isValidT2) (concat [zero,nas,nbs,ncs,nds]) ++
-  addNumbers (makeGensym 0 ("Ha")) as nas zero ++
-  addNumbers (makeGensym 0 ("Hb")) bs nbs zero ++
-  addNumbers (makeGensym 0 ("Hc")) cs ncs zero ++
-  addNumbers (makeGensym 0 ("Hd")) ds nds zero ++
-  integerEqualsNumberT2 0 zero ++
-  integerEqualsNumberT2 (-a) nas ++
-  integerEqualsNumberT2 (-b) nbs ++ 
-  integerEqualsNumberT2 (-c) ncs ++
-  integerEqualsNumberT2 (-d) nds
+zero :: ([Positional ([Char], Int)], ClauseList)
+zero = let
+  zs = makeNumber ("zero", 0) (2 * symN + 5)
+  clauses = concatMap (formulaToClauses . isValidT2) zs ++ integerEqualsNumberT2 0 zs
+  in (zs, clauses)
 
-             
+
+matrixEqual :: Label -> Matrix (Label, [Positional Chint]) -> Matrix Integer -> ClauseList
+matrixEqual label
+    (Matrix (lab_a, as) (lab_b, bs) (lab_c, cs) (lab_d, ds))
+    (Matrix a b c d) =
+  let
+  ll_a = label ++ lab_a
+  ll_b = label ++ lab_b
+  ll_c = label ++ lab_c
+  ll_d = label ++ lab_d
+  aa = makeNumber ('g':ll_a, 0) (2 * symN + 4)
+  bb = makeNumber ('g':ll_b, 0) (2 * symN + 4)
+  cc = makeNumber ('g':ll_c, 0) (2 * symN + 4)
+  dd = makeNumber ('g':ll_d, 0) (2 * symN + 4)
+  in
+  concatMap (formulaToClauses . isValidT2) (concat [aa,bb,cc,dd]) ++
+  subtractNumbers (makeGensym 0 ('G':ll_a)) as aa (fst zero) ++
+  subtractNumbers (makeGensym 0 ('G':ll_b)) bs bb (fst zero) ++
+  subtractNumbers (makeGensym 0 ('G':ll_c)) cs cc (fst zero) ++
+  subtractNumbers (makeGensym 0 ('G':ll_d)) ds dd (fst zero) ++
+  integerEqualsNumberT2 a aa ++
+  integerEqualsNumberT2 b bb ++ 
+  integerEqualsNumberT2 c cc ++
+  integerEqualsNumberT2 d dd
+
+
+-- Factoring a 2 x 2 matrix             
 test :: ClauseList
 test = let
-  [a,b,c,d] = map makeScalar ["a", "b", "c", "d"]
-  x = Matrix (fst a) (fst b) (fst c) (fst d)
+  [xa,xb,xc,xd] = map makeScalar ["xa", "xb", "xc", "xd"]
+  x = Matrix (fst xa) (fst xb) (fst xc) (fst xd)
   (xx, clauses) = matrixProduct "mat" x x
   in 
-  snd a ++ snd b ++ snd c ++ snd d ++ clauses ++
-  matrixEqual xx (Matrix 20000 20000 20000 20000)
+  snd zero ++
+  concatMap snd [xa,xb,xc,xd] ++
+  clauses ++
+  matrixEqual "ME" xx (Matrix 506392 377704 169053 718089)
