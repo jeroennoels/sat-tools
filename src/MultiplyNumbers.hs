@@ -268,6 +268,8 @@ matrixEqual label
   integerEqualsNumberT2 c cc ++
   integerEqualsNumberT2 d dd
 
+
+
 reversePositiveT1 :: IdentifyT1 i j => [i] -> Formula j
 reversePositiveT1 [a] = posT1 a
 reversePositiveT1 (a:as) = posT1 a `Or` (zeroT1 a `And` reversePositiveT1 as)
@@ -281,12 +283,51 @@ isPositiveScalar (Scalar _ quux) = isPositiveT1 quux
 isPositiveMatrix :: Matrix Scalar -> ClauseList
 isPositiveMatrix (Matrix a b c d) = concatMap isPositiveScalar [a,b,c,d]
 
+reversePositiveT2 :: IdentifyT2 i j => [i] -> Formula j
+reversePositiveT2 [a] = posT2 a
+reversePositiveT2 (a:as) = posT2 a `Or` (zeroT2 a `And` reversePositiveT2 as)
+
+isPositiveT2 :: [Positional Chint] -> ClauseList
+isPositiveT2 = formulaToClauses . reversePositiveT2 . reverse
+
+reverseNonNegativeT2 :: IdentifyT2 i j => [i] -> Formula j
+reverseNonNegativeT2 [a] = posT2 a `Or` zeroT2 a
+reverseNonNegativeT2 (a:as) = posT2 a `Or` (zeroT2 a `And` reverseNonNegativeT2 as)
+
+isNonNegativeT2 :: [Positional Chint] -> ClauseList
+isNonNegativeT2 = formulaToClauses . reverseNonNegativeT2 . reverse
+
+
+matrixGreaterThan :: Label ->
+    Matrix (Label, [Positional Chint]) ->
+    Matrix (Label, [Positional Chint]) -> ClauseList
+matrixGreaterThan label
+    (Matrix (lab_xa, xas) (lab_xb, xbs) (lab_xc, xcs) (lab_xd, xds))
+    (Matrix (lab_ya, yas) (lab_yb, ybs) (lab_yc, ycs) (lab_yd, yds)) =
+  let
+  ll_a = label ++ lab_xa ++ lab_ya
+  ll_b = label ++ lab_xb ++ lab_yb
+  ll_c = label ++ lab_xc ++ lab_yc
+  ll_d = label ++ lab_xd ++ lab_yd
+  aa = makeNumber ('g':ll_a, 0) (2 * symN + 5)
+  bb = makeNumber ('g':ll_b, 0) (2 * symN + 5)
+  cc = makeNumber ('g':ll_c, 0) (2 * symN + 5)
+  dd = makeNumber ('g':ll_d, 0) (2 * symN + 5)
+  in
+  concatMap (formulaToClauses . isValidT2) (concat [aa,bb,cc,dd]) ++
+  subtractNumbers (makeGensym 0 ('G':ll_a)) xas yas aa ++
+  subtractNumbers (makeGensym 0 ('G':ll_b)) xbs ybs bb ++
+  subtractNumbers (makeGensym 0 ('G':ll_c)) xcs ycs cc ++
+  subtractNumbers (makeGensym 0 ('G':ll_d)) xds yds dd ++
+  concatMap isNonNegativeT2 [aa,bb,cc,dd]
+  
+
 -- Factoring a 2 x 2 matrix.  Takes about 1 minute with Cadical.  
-test :: ClauseList
-test = let
+test_factor_matrix :: ClauseList
+test_factor_matrix = let
   [xa,xb,xc,xd] = map makeScalar ["xa", "xb", "xc", "xd"]
-  x = Matrix (fst xa) (fst xb) (fst xc) (fst xd)
   [ya,yb,yc,yd] = map makeScalar ["ya", "yb", "yc", "yd"]
+  x = Matrix (fst xa) (fst xb) (fst xc) (fst xd)
   y = Matrix (fst ya) (fst yb) (fst yc) (fst yd)
   (xy, clauses) = matrixProduct "mat" x y
   in
@@ -296,3 +337,19 @@ test = let
   concatMap snd [ya,yb,yc,yd] ++
   clauses ++
   matrixEqual "ME" xy (Matrix 44953 29609 47407 40127)
+
+
+test :: ClauseList
+test = let
+  [xa,xb,xc,xd] = map makeScalar ["xa", "xb", "xc", "xd"]
+  [ya,yb,yc,yd] = map makeScalar ["ya", "yb", "yc", "yd"]
+  x = Matrix (fst xa) (fst xb) (fst xc) (fst xd)
+  y = Matrix (fst ya) (fst yb) (fst yc) (fst yd)
+  (xy, clauses_xy) = matrixProduct "xy" x y
+  (yx, clauses_yx) = matrixProduct "yx" y x
+  in
+  isPositiveMatrix x ++  isPositiveMatrix y ++
+  concatMap snd [xa,xb,xc,xd] ++
+  concatMap snd [ya,yb,yc,yd] ++
+  clauses_xy ++ clauses_yx ++
+  matrixGreaterThan "GT" xy yx
