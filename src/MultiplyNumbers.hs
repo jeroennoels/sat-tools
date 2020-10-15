@@ -183,6 +183,7 @@ type ClauseList = [Clause (T12 (Quux Chint Label) (Positional Chint))]
 data Scalar = Scalar Label [Quux Chint String]
   deriving (Eq, Ord, Read, Show)
 
+-- experiment with bundling of variables and clauses
 makeScalar :: Label -> (Scalar, ClauseList)
 makeScalar label = (Scalar label as, clauses)
   where
@@ -267,15 +268,31 @@ matrixEqual label
   integerEqualsNumberT2 c cc ++
   integerEqualsNumberT2 d dd
 
+reversePositiveT1 :: IdentifyT1 i j => [i] -> Formula j
+reversePositiveT1 [a] = posT1 a
+reversePositiveT1 (a:as) = posT1 a `Or` (zeroT1 a `And` reversePositiveT1 as)
 
--- Factoring a 2 x 2 matrix             
+isPositiveT1 :: [Quux Chint Label] -> ClauseList
+isPositiveT1 = formulaToClauses . reversePositiveT1 . reverse
+
+isPositiveScalar :: Scalar -> ClauseList
+isPositiveScalar (Scalar _ quux) = isPositiveT1 quux
+
+isPositiveMatrix :: Matrix Scalar -> ClauseList
+isPositiveMatrix (Matrix a b c d) = concatMap isPositiveScalar [a,b,c,d]
+
+-- Factoring a 2 x 2 matrix.  Takes about 1 minute with Cadical.  
 test :: ClauseList
 test = let
   [xa,xb,xc,xd] = map makeScalar ["xa", "xb", "xc", "xd"]
   x = Matrix (fst xa) (fst xb) (fst xc) (fst xd)
-  (xx, clauses) = matrixProduct "mat" x x
-  in 
+  [ya,yb,yc,yd] = map makeScalar ["ya", "yb", "yc", "yd"]
+  y = Matrix (fst ya) (fst yb) (fst yc) (fst yd)
+  (xy, clauses) = matrixProduct "mat" x y
+  in
+  isPositiveMatrix x ++  isPositiveMatrix y ++
   snd zero ++
   concatMap snd [xa,xb,xc,xd] ++
+  concatMap snd [ya,yb,yc,yd] ++
   clauses ++
-  matrixEqual "ME" xx (Matrix 506392 377704 169053 718089)
+  matrixEqual "ME" xy (Matrix 44953 29609 47407 40127)
