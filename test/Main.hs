@@ -14,6 +14,7 @@ import AddT2
 import AddNumbers
 import MultiplyT1
 import MultiplyNumbers
+import MatrixTwoByTwo
 import Tools
 
 import TestAddT1
@@ -84,7 +85,7 @@ readLinesFromFile :: FilePath -> IO [String]
 readLinesFromFile file = lines `fmap` readFile file
 
 -- loadMapping :: IO [(Int, VertexColorBit)]
-loadMapping :: IO [(Int, (T12 (Quux Chint String) (Positional Chint)))]
+loadMapping :: IO [(Int, (T12 (CollectT1 Strint String) (Positional Strint)))]
 loadMapping = readMapping `fmap` readLinesFromFile "problem.cnf"
 
 loadVariables :: IO [Int]
@@ -94,16 +95,19 @@ loadModel :: IO String
 loadModel = fmap (show . interpretation) model
   where model = liftA2 getModel loadVariables loadMapping
         interpretation = interpretationT1 getNumber &&& interpretationT2 Just
-  
+
 -- interpretation :: [(VertexColorBit, Bool)] -> [(VertexColorBit, Bool)]
 -- interpretation = id
 
 run :: [String] -> IO ()
+-- Test suite
 run ["test"] = runTests
 run ["slow"] = runSlowTests
-run ["p"] = dimacsOutput test -- (graphColoring graph)
+-- Generate the file to feed into the SAT solver
+run ["p"] = dimacsOutput MatrixTwoByTwo.test_commutator -- (graphColoring graph)
+-- Indexed list of all variables
 run ["i"] = loadMapping >>= print
+-- For debugging
 run ["s"] = loadVariables >>= print
+-- Process the file "out.dimacs" that holds the output of the SAT solver
 run ["m"] = loadModel >>= print
-run ["lm"] = liftA2 getModel loadVariables loadMapping >>= print
-

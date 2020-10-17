@@ -43,6 +43,21 @@ parseForT1 x = let
   in fromIntegral w : parseForT1 v
 
 
+-- Zero has a unique T2 representation
+isZeroNumberT2 :: (Ord i1, Ord i2) => [i2] -> Formula (T12 i1 i2)
+isZeroNumberT2 as = conjunction $ map zeroT2 as
+
+nonZeroNumberT2 :: (Ord i1, Ord i2) => [i2] -> Formula (T12 i1 i2)
+nonZeroNumberT2 as = Not (isZeroNumberT2 as)
+
 nonZeroNumberT1 :: (Ord i1, Ord i2) => [i1] -> [Clause (T12 i1 i2)]
 nonZeroNumberT1 as = formulaToClauses $ disjunction $
   map Not (zipWith intEqualsT1 (repeat 0) as)
+
+-- Zero has a unique T1 representation
+isZeroT1 :: (Ord i1, Ord i2) => [i1] -> Formula (T12 i1 i2)
+isZeroT1 as = conjunction $ map zeroT1 as
+
+-- Zero has a unique T1 representation
+isOneT1 :: (Ord i1, Ord i2) => [i1] -> Formula (T12 i1 i2)
+isOneT1 (a:as) = conjunction (posT1 a : map zeroT1 as)
