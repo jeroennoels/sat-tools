@@ -63,7 +63,6 @@ reverseNonNegativeT2 (a:as) = posT2 a `Or` (zeroT2 a `And` reverseNonNegativeT2 
 isNonNegativeT2 :: [Positional Strint] -> ClauseList
 isNonNegativeT2 = formulaToClauses . reverseNonNegativeT2 . reverse
 
-
 scalarIsZero :: Scalar -> ClauseList
 scalarIsZero (Scalar _ a) = formulaToClauses (isZeroT1 a)
 

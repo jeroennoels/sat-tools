@@ -88,6 +88,10 @@ interpretationT2 pos = allNumberValues . snd . digitValues . mapMaybe extract
     extract :: (T12 i1 i2, Bool) -> Maybe (T12 i1 (Positional i), Bool)
     extract = maybeFirst (numberT2 pos)
 
+dummyInterpretationT2 :: forall i1 i2 i .
+    (Eq i1, Eq i2, Ord i, Ord i1, Ord i2, Show i, Show i1, Show i2) =>
+    (i2 -> Maybe (Positional i)) -> [(T12 i1 i2, Bool)] -> [(i, Integer)]
+dummyInterpretationT2 _ _ = []
 
 maybeFirst :: (a -> Maybe b) -> (a,c) -> Maybe (b,c)
 maybeFirst f (a,c) = (,c) `fmap` f a

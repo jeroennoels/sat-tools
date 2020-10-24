@@ -14,7 +14,8 @@ import AddT2
 import AddNumbers
 import MultiplyT1
 import MultiplyNumbers
-import MatrixTwoByTwo
+import Matrix
+import Collatz
 import Tools
 
 import TestAddT1
@@ -94,7 +95,8 @@ loadVariables = readVariables `fmap` readLinesFromFile "out.dimacs"
 loadModel :: IO String
 loadModel = fmap (show . interpretation) model
   where model = liftA2 getModel loadVariables loadMapping
-        interpretation = interpretationT1 getNumber &&& interpretationT2 Just
+        interpretation = interpretationT1 getNumber &&&
+                         dummyInterpretationT2 Just -- interpretationT2 Just
 
 -- interpretation :: [(VertexColorBit, Bool)] -> [(VertexColorBit, Bool)]
 -- interpretation = id
@@ -104,7 +106,8 @@ run :: [String] -> IO ()
 run ["test"] = runTests
 run ["slow"] = runSlowTests
 -- Generate the file to feed into the SAT solver
-run ["p"] = dimacsOutput MatrixTwoByTwo.test_commutator -- (graphColoring graph)
+run ["p"] = dimacsOutput Collatz.test
+-- (graphColoring graph)
 -- Indexed list of all variables
 run ["i"] = loadMapping >>= print
 -- For debugging
