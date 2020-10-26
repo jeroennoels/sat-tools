@@ -149,6 +149,14 @@ matrixGreaterThan label (Matrix rows_a) (Matrix rows_b) = let
   formulaToClauses (disjunction $ map nonZeroNumberT2 diffs)
 
 
+sameNumberT12 :: Scalar -> (Label, [Positional Strint]) -> ClauseList
+sameNumberT12 (Scalar _ as) (_, bs) = formulaToClauses $
+  equivalentNumbersT12 as bs
+
+sameMatrixT12 :: Matrix Scalar -> Matrix (Label, [Positional Strint]) -> ClauseList
+sameMatrixT12 (Matrix rows_1) (Matrix rows_2) = concat $
+  zipWith sameNumberT12 (concat rows_1) (concat rows_2)
+
 productGreaterThanProduct :: Label ->
     (Matrix Scalar, Matrix Scalar) ->
     (Matrix Scalar, Matrix Scalar) -> ClauseList
