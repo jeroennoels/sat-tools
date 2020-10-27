@@ -15,7 +15,6 @@ import AddNumbers
 import MultiplyT1
 import MultiplyNumbers
 import Matrix
-import Collatz
 import Tools
 
 import TestAddT1
@@ -106,7 +105,7 @@ run :: [String] -> IO ()
 run ["test"] = runTests
 run ["slow"] = runSlowTests
 -- Generate the file to feed into the SAT solver
-run ["p"] = dimacsOutput Collatz.test
+run ["p"] = dimacsOutput Matrix.test
 -- (graphColoring graph)
 -- Indexed list of all variables
 run ["i"] = loadMapping >>= print
