@@ -21,7 +21,7 @@ import Data.Maybe
 
 -- must be even
 symN :: Int
-symN = 6
+symN = 14
 
 shift :: (Int,Int) -> Int -> (Int,Int)
 shift (a,b) c = (a+c, b+c)
@@ -146,6 +146,7 @@ offset = 1000
 -- We multiply two T1-represented numbers of 7 digits.
 -- The result will be a T2-represented number of 15 digits.
 
+-- Version to use with symN = 6
 multiplyNumbers :: String -> String -> String ->
     [CollectT1 Strint String] -> [CollectT1 Strint String] -> [Positional Strint] ->
     [Clause (T12 (CollectT1 Strint String) (Positional Strint))]
@@ -165,13 +166,41 @@ verifiedInput lenX lenY = if lenX == lenY && lenX == 2 * symN
   then lenX else error "verifiedInput"
 
 
--- integer factoring example
+-- Version to use with symN = 14
+multiplyNumbers14 :: String -> String -> String ->
+    [CollectT1 Strint String] -> [CollectT1 Strint String] -> [Positional Strint] ->
+    [Clause (T12 (CollectT1 Strint String) (Positional Strint))]
+multiplyNumbers14 g gg ggg as bs cs = let
+  c1 = makeNumber (ggg,1) (2 * symN + 2)
+  c2 = makeNumber (ggg,2) (2 * symN + 2)
+  c3 = makeNumber (ggg,3) (2 * symN + 2)
+  c4 = makeNumber (ggg,4) (2 * symN + 2)
+  us = makeNumber (ggg,5) (2 * symN + 3)
+  vs = makeNumber (ggg,6) (2 * symN + 3)
+  in
+  concat (map (snakeClauses g as bs) [0..(div symN 2 - 1)]) ++
+  bisectClauses g as bs ++
+  concatMap (formulaToClauses . isValidT2) (concat [c1,c2,c3,c4,us,vs]) ++
+  addNumbers (makeGensym (1*offset) gg) (biDiagonal g 0) (biDiagonal g 1) c1 ++
+  addNumbers (makeGensym (2*offset) gg) (biDiagonal g 2) (biDiagonal g 3) c2 ++
+  addNumbers (makeGensym (3*offset) gg) (biDiagonal g 4) (biDiagonal g 5) c3 ++
+  addNumbers (makeGensym (4*offset) gg) (biDiagonal g 6) (bisectional g)  c4 ++
+  addNumbers (makeGensym (5*offset) gg) c1 c2 us ++
+  addNumbers (makeGensym (6*offset) gg) c3 c4 vs ++
+  addNumbers (makeGensym (7*offset) gg) us vs cs   
+ 
+
+-- integer factoring example with symN = 14
 test = let
-  as = map Number $ makeNumber "a" (symN + 1)
-  bs = map Number $ makeNumber "b" (symN + 1)
-  cs = makeNumber ("c",0) (2 * symN + 3)
+  as = map Number $ makeNumber "aa" (symN + 1)
+  bs = map Number $ makeNumber "bb" (symN + 1)
+  cs = makeNumber ("cc",0) (2 * symN + 4)
+  ds = makeNumber ("dd",0) (2 * symN + 4)
+  zs = makeNumber ("zz",0) (2 * symN + 5)
   in
   concatMap (formulaToClauses . isValidT1) (concat [as,bs]) ++
-  concatMap (formulaToClauses . isValidT2) (concat [cs]) ++
-  multiplyNumbers "A" "B" "C" as bs cs ++
-  integerEqualsNumberT2 (1089*1091) cs
+  concatMap (formulaToClauses . isValidT2) (concat [cs,ds,zs]) ++
+  concatMap formulaToClauses (map zeroT2 zs) ++
+  multiplyNumbers14 "Aa" "Bb" "Cc" as bs cs ++
+  subtractNumbers (makeGensym 0 "diff") cs ds zs ++
+  integerEqualsNumberT2 (5123467 * 5140253) ds

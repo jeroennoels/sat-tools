@@ -105,7 +105,7 @@ run :: [String] -> IO ()
 run ["test"] = runTests
 run ["slow"] = runSlowTests
 -- Generate the file to feed into the SAT solver
-run ["p"] = dimacsOutput Matrix.test
+run ["p"] = dimacsOutput MultiplyNumbers.test
 -- (graphColoring graph)
 -- Indexed list of all variables
 run ["i"] = loadMapping >>= print
